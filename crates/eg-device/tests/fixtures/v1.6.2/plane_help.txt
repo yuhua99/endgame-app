@@ -1,0 +1,5 @@
+plane - Rotate plane processor
+Subcommands:
+  status  :Get status of all devices
+  get     :Get angle for a device
+  set     :Set angle for a device

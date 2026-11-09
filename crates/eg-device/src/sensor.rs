@@ -1,0 +1,207 @@
+//! Sensor settings: pointer and twist-scroll sensitivity, twist scroll, SMA smoothing,
+//! report sync window, and pointer plane rotation.
+//!
+//! Commands and value formats follow Marshmellow UI. `p2sm status` and
+//! `p2sm sens pointer get` outputs are recorded from firmware v1.6.2 (tests/fixtures);
+//! `rrl get` ("Sync window: N") and `plane get pointer` ("angle=N") are taken from
+//! Marshmellow's parsers and not yet recorded.
+
+use std::ops::RangeInclusive;
+
+use eg_shell::Shell;
+
+use crate::{Error, Result};
+
+/// Ranges used by Marshmellow UI's controls, in the units of the fields below.
+pub const POINTER_RANGE: RangeInclusive<u32> = 10..=1000;
+pub const TWIST_RANGE: RangeInclusive<u32> = 1..=1000;
+pub const SMA_WINDOW_RANGE: RangeInclusive<u32> = 2..=12;
+pub const SYNC_MS_RANGE: RangeInclusive<u32> = 0..=10;
+/// Not taken from Marshmellow (it uses a free text field).
+pub const PLANE_DEG_RANGE: RangeInclusive<i32> = -180..=180;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SensorSettings {
+    /// Pointer sensitivity in 0.1 % units (280 = 28 %).
+    pub pointer: u32,
+    pub twist_on: bool,
+    pub twist_reversed: bool,
+    /// Twist scroll sensitivity in 0.1 % units.
+    pub twist: u32,
+    pub sma_on: bool,
+    /// SMA smoothing window in samples.
+    pub sma_window: u32,
+    /// Report rate limiter sync window in ms.
+    pub sync_ms: u32,
+    /// Pointer plane rotation in degrees; `None` if the firmware reports no angle.
+    pub plane_deg: Option<i32>,
+}
+
+pub async fn read(shell: &Shell) -> Result<SensorSettings> {
+    let status = shell.exec("p2sm status").await?;
+    let pointer = shell.exec("p2sm sens pointer get").await?;
+    let rrl = shell.exec("rrl get").await?;
+    let plane = match shell.exec("plane get pointer").await {
+        Ok(out) => Some(out),
+        Err(eg_shell::Error::Unsupported(_)) => None,
+        Err(e) => return Err(e.into()),
+    };
+    parse(&status, &pointer, &rrl, plane.as_deref())
+}
+
+/// Sends only the changed settings, then reads back what the device actually has.
+pub async fn apply(shell: &Shell, new: &SensorSettings) -> Result<SensorSettings> {
+    let current = read(shell).await?;
+    for cmd in diff(&current, new) {
+        shell.exec(&cmd).await?;
+    }
+    read(shell).await
+}
+
+pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Result<SensorSettings> {
+    let bad = |cmd: &str, output: &str| Error::Parse { cmd: cmd.into(), output: output.into() };
+    let flag = |key: &str, on: &str, off: &str| {
+        fields(status, key).find_map(|v| match v {
+            v if v == on => Some(true),
+            v if v == off => Some(false),
+            _ => None,
+        })
+    };
+    // "Twist scroll:" appears twice: "enabled" under General and "32%" under Sensitivity.
+    let pct = |key: &str| fields(status, key).find_map(parse_pct);
+
+    Ok(SensorSettings {
+        pointer: pointer
+            .split_whitespace()
+            .next()
+            .and_then(|v| v.parse().ok())
+            .ok_or_else(|| bad("p2sm sens pointer get", pointer))?,
+        twist_on: flag("Twist scroll:", "enabled", "disabled").ok_or_else(|| bad("p2sm status", status))?,
+        twist_reversed: flag("Twist reversed:", "yes", "no").ok_or_else(|| bad("p2sm status", status))?,
+        twist: pct("Twist scroll:").ok_or_else(|| bad("p2sm status", status))?,
+        sma_on: flag("SMA smoothing:", "enabled", "disabled").ok_or_else(|| bad("p2sm status", status))?,
+        sma_window: fields(status, "SMA window:")
+            .find_map(|v| v.parse().ok())
+            .ok_or_else(|| bad("p2sm status", status))?,
+        sync_ms: fields(rrl, "Sync window:")
+            .find_map(|v| v.split_whitespace().next()?.parse().ok())
+            .ok_or_else(|| bad("rrl get", rrl))?,
+        plane_deg: plane.and_then(parse_angle),
+    })
+}
+
+/// Commands that turn `old` into `new`. `p2sm twist reverse` toggles, so `old` must be
+/// the device's current state.
+pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String> {
+    let on_off = |on: bool| if on { "on" } else { "off" };
+    let mut cmds = Vec::new();
+    if new.pointer != old.pointer {
+        cmds.push(format!("p2sm sens pointer set {}", new.pointer));
+    }
+    if new.twist_on != old.twist_on {
+        cmds.push(format!("p2sm twist {}", on_off(new.twist_on)));
+    }
+    if new.twist != old.twist {
+        cmds.push(format!("p2sm sens twist set {}", new.twist));
+    }
+    if new.twist_reversed != old.twist_reversed {
+        cmds.push("p2sm twist reverse".into());
+    }
+    if new.sma_window != old.sma_window {
+        cmds.push(format!("p2sm sma window set {}", new.sma_window));
+    }
+    if new.sma_on != old.sma_on {
+        cmds.push(format!("p2sm sma {}", on_off(new.sma_on)));
+    }
+    if new.sync_ms != old.sync_ms {
+        cmds.push(format!("rrl set {}", new.sync_ms));
+    }
+    if let Some(deg) = new.plane_deg.filter(|_| new.plane_deg != old.plane_deg) {
+        cmds.push(format!("plane set pointer {deg}"));
+    }
+    cmds
+}
+
+/// Values of lines starting with `key`, e.g. "Pointer: 28%" -> "28%".
+fn fields<'a>(out: &'a str, key: &'a str) -> impl Iterator<Item = &'a str> {
+    out.lines().filter_map(move |line| line.trim().strip_prefix(key)).map(str::trim)
+}
+
+/// "32%" or "~32.5%" -> 325 (0.1 % units).
+fn parse_pct(v: &str) -> Option<u32> {
+    let pct: f64 = v.strip_suffix('%')?.trim_start_matches('~').parse().ok()?;
+    Some((pct * 10.0).round() as u32)
+}
+
+/// "... angle=-15 ..." -> -15.
+fn parse_angle(out: &str) -> Option<i32> {
+    let rest = &out[out.find("angle=")? + "angle=".len()..];
+    let end = rest
+        .char_indices()
+        .find(|&(i, c)| !(c.is_ascii_digit() || (i == 0 && c == '-')))
+        .map_or(rest.len(), |(i, _)| i);
+    rest[..end].parse().ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const STATUS: &str = include_str!("../tests/fixtures/v1.6.2/p2sm_status.txt");
+    const POINTER: &str = include_str!("../tests/fixtures/v1.6.2/p2sm_sens_pointer_get.txt");
+
+    fn sample() -> SensorSettings {
+        parse(STATUS, POINTER, "Sync window: 4", Some("pointer: angle=-15")).unwrap()
+    }
+
+    #[test]
+    fn parses_recorded_output() {
+        assert_eq!(
+            sample(),
+            SensorSettings {
+                pointer: 280,
+                twist_on: true,
+                twist_reversed: false,
+                twist: 320,
+                sma_on: false,
+                sma_window: 3,
+                sync_ms: 4,
+                plane_deg: Some(-15),
+            }
+        );
+    }
+
+    #[test]
+    fn plane_is_optional() {
+        assert_eq!(parse(STATUS, POINTER, "Sync window: 4", None).unwrap().plane_deg, None);
+        assert_eq!(parse(STATUS, POINTER, "Sync window: 4", Some("no such device")).unwrap().plane_deg, None);
+    }
+
+    #[test]
+    fn reports_which_command_failed_to_parse() {
+        let err = parse(STATUS, POINTER, "garbage", None).unwrap_err();
+        assert!(matches!(err, Error::Parse { cmd, .. } if cmd == "rrl get"));
+    }
+
+    #[test]
+    fn parses_decimal_and_approx_pct() {
+        assert_eq!(parse_pct("~32.5%"), Some(325));
+        assert_eq!(parse_pct("enabled"), None);
+    }
+
+    #[test]
+    fn diff_sends_only_changes() {
+        let old = sample();
+        assert!(diff(&old, &old).is_empty());
+
+        let new = SensorSettings { pointer: 300, twist_reversed: true, sma_on: true, plane_deg: Some(0), ..old.clone() };
+        assert_eq!(diff(&old, &new), ["p2sm sens pointer set 300", "p2sm twist reverse", "p2sm sma on", "plane set pointer 0"]);
+    }
+
+    #[test]
+    fn diff_never_sets_missing_plane() {
+        let old = SensorSettings { plane_deg: Some(10), ..sample() };
+        let new = SensorSettings { plane_deg: None, ..old.clone() };
+        assert!(diff(&old, &new).is_empty());
+    }
+}

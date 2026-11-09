@@ -1,0 +1,46 @@
+General:
+Twist scroll: enabled
+Twist reversed: no
+SMA smoothing: disabled
+SMA window: 3
+
+Sensitivity:
+Pointer: 28%
+Twist scroll: 32%
+
+Behaviors:
+Behaviors: 4
+
+[ID 0] Scroll sensitivity (no wrapping) [scroll]
+  step: 10
+  min_step: 2, max_step: 12
+  max_multiplier: 1
+  wrap: false
+  feedback_on_limit: false
+  feedback_duration: 65
+
+[ID 1] Pointer sensitivity (no wrapping)
+  step: 50
+  min_step: 1, max_step: 8
+  max_multiplier: 1
+  wrap: false
+  feedback_on_limit: false
+  feedback_duration: 65
+
+[ID 2] Scroll sensitivity [scroll]
+  step: 250
+  min_step: 1, max_step: 1000
+  max_multiplier: 1
+  wrap: true
+  feedback_on_limit: false
+  feedback_duration: 65
+  feedback_wrap_pattern: [0, 10, 65, 25, 65, 25, 65]
+
+[ID 3] Pointer sensitivity
+  step: 125
+  min_step: 1, max_step: 1000
+  max_multiplier: 1
+  wrap: true
+  feedback_on_limit: false
+  feedback_duration: 65
+  feedback_wrap_pattern: [0, 10, 65, 25, 65, 25, 65]

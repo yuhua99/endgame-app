@@ -1,0 +1,13 @@
+[package]
+name = "eg-device"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+eg-shell.workspace = true
+eg-studio.workspace = true
+log.workspace = true
+eg-transport.workspace = true
+thiserror.workspace = true
+tokio.workspace = true

@@ -1,0 +1,4 @@
+rrl - Report rate limiter
+Subcommands:
+  get  :Get current report rate limit
+  set  :Set report rate sync window

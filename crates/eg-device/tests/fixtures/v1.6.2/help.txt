@@ -1,0 +1,21 @@
+Please press the <Tab> button to see all available commands.
+You can also use the <Tab> button to prompt or auto-complete all commands or its subcommands.
+You can try to call commands with <-h> or <--help> parameter for more information.
+
+Available commands:
+  argb      :Adaptive feedback control
+  bistable  :Bistable behavior control
+  board     :Control the device
+  clear     :Clear screen.
+  curve     :Acceleration curves
+  esb       :ESB endpoint commands
+  help      :Prints the help message.
+  keymap    :Keymap management
+  p2sm      :Sensor mixer configuration
+  plane     :Rotate plane processor
+  rem       :Ignore lines beginning with 'rem '
+  retval    :Print return value of most recent command
+  rrl       :Report rate limiter
+  rtcfg     :Runtime configuration
+  sensor    :Sensor diagnostics
+  shell     :Useful, not Unix-like shell commands.

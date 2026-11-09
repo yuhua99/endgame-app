@@ -1,0 +1,7 @@
+p2sm - Sensor mixer configuration
+Subcommands:
+  status    :Show current configuration
+  twist     :Change status of twist scroll
+  sens      :Change sensitivity
+  sma       :Control SMA smoothing
+  behavior  :Manage behaviors
