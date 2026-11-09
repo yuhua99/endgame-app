@@ -1410,7 +1410,6 @@ name = "eg-transport"
 version = "0.1.0"
 dependencies = [
  "bluest",
- "env_logger",
  "futures",
  "log",
  "thiserror 2.0.21",
