@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = ["crates/eg-transport"]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "MIT"
+
+[workspace.dependencies]
+bluest = "0.6.9"
+dioxus = { version = "0.7.10", features = ["desktop"] }
+eg-device = { path = "crates/eg-device" }
+eg-shell = { path = "crates/eg-shell" }
+eg-studio = { path = "crates/eg-studio" }
+eg-transport = { path = "crates/eg-transport" }
+futures = "0.3"
+log = "0.4"
+prost = "0.14"
+prost-build = "0.14"
+protox = "0.10"
+thiserror = "2"
+env_logger = "0.11"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+uuid = "1"

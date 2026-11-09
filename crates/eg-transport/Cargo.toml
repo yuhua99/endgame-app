@@ -1,0 +1,16 @@
+[package]
+name = "eg-transport"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+bluest.workspace = true
+futures.workspace = true
+log.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+env_logger.workspace = true
