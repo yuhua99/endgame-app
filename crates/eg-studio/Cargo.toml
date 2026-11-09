@@ -1,0 +1,18 @@
+[package]
+name = "eg-studio"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+log.workspace = true
+prost.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+
+[build-dependencies]
+prost-build.workspace = true
+protox.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
