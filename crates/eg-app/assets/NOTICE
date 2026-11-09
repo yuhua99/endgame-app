@@ -1,0 +1,8 @@
+hid_usages.tsv and behavior_short_names.tsv are generated from ZMK Studio
+(https://github.com/zmkfirmware/zmk-studio, src/keyboard-and-consumer-usage-tables.json,
+src/hid-usage-name-overrides.json, src/keyboard/behavior-short-names.json).
+
+ZMK Studio
+Copyright 2024 The ZMK Contributors
+Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
+The usage tables derive from the USB-IF HID Usage Tables 1.5.

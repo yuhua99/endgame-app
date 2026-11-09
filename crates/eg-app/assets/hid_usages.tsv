@@ -1,0 +1,619 @@
+12	1	Consumer Control	Consumer Control
+12	2	Numeric Key Pad	Numeric Key Pad
+12	3	Programmable Buttons	Programmable Buttons
+12	4	Microphone	Microphone
+12	5	Headphone	Headphone
+12	6	Graphic Equalizer	Graphic Equalizer
+12	32	+10	+10
+12	33	+100	+100
+12	34	AM/PM	AM/PM
+12	48	Power	Power
+12	49	Reset	Reset
+12	50	Sleep	Sleep
+12	51	Sleep After	Sleep After
+12	52	Sleep Mode	Sleep Mode
+12	53	Illumination	Illumination
+12	54	Function Buttons	Function Buttons
+12	64	Menu	Menu
+12	65	Menu Pick	Menu Pick
+12	66	Menu Up	Menu Up
+12	67	Menu Down	Menu Down
+12	68	Menu Left	Menu Left
+12	69	Menu Right	Menu Right
+12	70	Menu Escape	Menu Escape
+12	71	Menu Value Increase	Menu Value Increase
+12	72	Menu Value Decrease	Menu Value Decrease
+12	96	Data On Screen	Data On Screen
+12	97	Closed Caption	Closed Caption
+12	98	Closed Caption Select	Closed Caption Select
+12	99	VCR/TV	VCR/TV
+12	100	Broadcast Mode	Broadcast Mode
+12	101	Snapshot	Snapshot
+12	102	Still	Still
+12	103	Picture-in-Picture Toggle	Picture-in-Picture Toggle
+12	104	Picture-in-Picture Swap	Picture-in-Picture Swap
+12	105	Red Menu Button	Red Menu Button
+12	106	Green Menu Button	Green Menu Button
+12	107	Blue Menu Button	Blue Menu Button
+12	108	Yellow Menu Button	Yellow Menu Button
+12	109	Aspect	Aspect
+12	110	3D Mode Select	3D Mode Select
+12	111	🔆	Display Brightness Increment
+12	112	🔅	Display Brightness Decrement
+12	113	Display Brightness	Display Brightness
+12	114	Display Backlight Toggle	Display Backlight Toggle
+12	115	Display Set Brightness to Minimum	Display Set Brightness to Minimum
+12	116	Display Set Brightness to Maximum	Display Set Brightness to Maximum
+12	117	Display Set Auto Brightness	Display Set Auto Brightness
+12	118	Camera Access Enabled	Camera Access Enabled
+12	119	Camera Access Disabled	Camera Access Disabled
+12	120	Camera Access Toggle	Camera Access Toggle
+12	121	Brightness Increment	Keyboard Brightness Increment
+12	122	Brightness Decrement	Keyboard Brightness Decrement
+12	123	Backlight Set Level	Keyboard Backlight Set Level
+12	124	Backlight OOC	Keyboard Backlight OOC
+12	125	Backlight Set Minimum	Keyboard Backlight Set Minimum
+12	126	Backlight Set Maximum	Keyboard Backlight Set Maximum
+12	127	Backlight Auto	Keyboard Backlight Auto
+12	128	Selection	Selection
+12	129	Assign Selection	Assign Selection
+12	130	Mode Step	Mode Step
+12	131	Recall Last	Recall Last
+12	132	Enter Channel	Enter Channel
+12	133	Order Movie	Order Movie
+12	134	Channel	Channel
+12	135	Media Selection	Media Selection
+12	136	Media Select Computer	Media Select Computer
+12	137	Media Select TV	Media Select TV
+12	138	Media Select WWW	Media Select WWW
+12	139	Media Select DVD	Media Select DVD
+12	140	Media Select Telephone	Media Select Telephone
+12	141	Media Select Program Guide	Media Select Program Guide
+12	142	Media Select Video Phone	Media Select Video Phone
+12	143	Media Select Games	Media Select Games
+12	144	Media Select Messages	Media Select Messages
+12	145	Media Select CD	Media Select CD
+12	146	Media Select VCR	Media Select VCR
+12	147	Media Select Tuner	Media Select Tuner
+12	148	Quit	Quit
+12	149	Help	Help
+12	150	Media Select Tape	Media Select Tape
+12	151	Media Select Cable	Media Select Cable
+12	152	Media Select Satellite	Media Select Satellite
+12	153	Media Select Security	Media Select Security
+12	154	Media Select Home	Media Select Home
+12	155	Media Select Call	Media Select Call
+12	156	Channel Increment	Channel Increment
+12	157	Channel Decrement	Channel Decrement
+12	158	Media Select SAP	Media Select SAP
+12	160	VCR Plus	VCR Plus
+12	161	Once	Once
+12	162	Daily	Daily
+12	163	Weekly	Weekly
+12	164	Monthly	Monthly
+12	176	Play	Play
+12	177	Pause	Pause
+12	178	Record	Record
+12	179	Fast Forward	Fast Forward
+12	180	Rewind	Rewind
+12	181	⇥	Scan Next Track
+12	182	⇤	Scan Previous Track
+12	183	Stop	Stop
+12	184	Eject	Eject
+12	185	Random Play	Random Play
+12	186	Select Disc	Select Disc
+12	187	Enter Disc	Enter Disc
+12	188	Repeat	Repeat
+12	189	Tracking	Tracking
+12	190	Track Normal	Track Normal
+12	191	Slow Tracking	Slow Tracking
+12	192	Frame Forward	Frame Forward
+12	193	Frame Back	Frame Back
+12	194	Mark	Mark
+12	195	Clear Mark	Clear Mark
+12	196	Repeat From Mark	Repeat From Mark
+12	197	Return To Mark	Return To Mark
+12	198	Search Mark Forward	Search Mark Forward
+12	199	Search Mark Backwards	Search Mark Backwards
+12	200	Counter Reset	Counter Reset
+12	201	Show Counter	Show Counter
+12	202	Tracking Increment	Tracking Increment
+12	203	Tracking Decrement	Tracking Decrement
+12	204	Stop/Eject	Stop/Eject
+12	205	⏯️	Play/Pause
+12	206	Play/Skip	Play/Skip
+12	207	Voice Command	Voice Command
+12	208	Invoke Capture Interface	Invoke Capture Interface
+12	209	Start or Stop Game Recording	Start or Stop Game Recording
+12	210	Historical Game Capture	Historical Game Capture
+12	211	Capture Game Screenshot	Capture Game Screenshot
+12	212	Show or Hide Recording Indicator	Show or Hide Recording Indicator
+12	213	Start or Stop Microphone Capture	Start or Stop Microphone Capture
+12	214	Start or Stop Camera Capture	Start or Stop Camera Capture
+12	215	Start or Stop Game Broadcast	Start or Stop Game Broadcast
+12	216	Start or Stop Voice Dictation Session	Start or Stop Voice Dictation Session
+12	217	Invoke/Dismiss Emoji Picker	Invoke/Dismiss Emoji Picker
+12	224	Volume	Volume
+12	225	Balance	Balance
+12	226	🔇	Mute
+12	227	Bass	Bass
+12	228	Treble	Treble
+12	229	Bass Boost	Bass Boost
+12	230	Surround Mode	Surround Mode
+12	231	Loudness	Loudness
+12	232	MPX	MPX
+12	233	🔊	Volume Increment
+12	234	🔉	Volume Decrement
+12	240	Speed Select	Speed Select
+12	241	Playback Speed	Playback Speed
+12	242	Standard Play	Standard Play
+12	243	Long Play	Long Play
+12	244	Extended Play	Extended Play
+12	245	Slow	Slow
+12	256	Fan Enable	Fan Enable
+12	257	Fan Speed	Fan Speed
+12	258	Light Enable	Light Enable
+12	259	Light Illumination Level	Light Illumination Level
+12	260	Climate Control Enable	Climate Control Enable
+12	261	Room Temperature	Room Temperature
+12	262	Security Enable	Security Enable
+12	263	Fire Alarm	Fire Alarm
+12	264	Police Alarm	Police Alarm
+12	265	Proximity	Proximity
+12	266	Motion	Motion
+12	267	Duress Alarm	Duress Alarm
+12	268	Holdup Alarm	Holdup Alarm
+12	269	Medical Alarm	Medical Alarm
+12	336	Balance Right	Balance Right
+12	337	Balance Left	Balance Left
+12	338	Bass Increment	Bass Increment
+12	339	Bass Decrement	Bass Decrement
+12	340	Treble Increment	Treble Increment
+12	341	Treble Decrement	Treble Decrement
+12	352	Speaker System	Speaker System
+12	353	Channel Left	Channel Left
+12	354	Channel Right	Channel Right
+12	355	Channel Center	Channel Center
+12	356	Channel Front	Channel Front
+12	357	Channel Center Front	Channel Center Front
+12	358	Channel Side	Channel Side
+12	359	Channel Surround	Channel Surround
+12	360	Channel Low Frequency Enhancement	Channel Low Frequency Enhancement
+12	361	Channel Top	Channel Top
+12	362	Channel Unknown	Channel Unknown
+12	368	Sub-channel	Sub-channel
+12	369	Sub-channel Increment	Sub-channel Increment
+12	370	Sub-channel Decrement	Sub-channel Decrement
+12	371	Alternate Audio Increment	Alternate Audio Increment
+12	372	Alternate Audio Decrement	Alternate Audio Decrement
+12	384	Application Launch Buttons	Application Launch Buttons
+12	385	AL Launch Button Configuration Tool	AL Launch Button Configuration Tool
+12	386	AL Programmable Button Configuration	AL Programmable Button Configuration
+12	387	AL Consumer Control Configuration	AL Consumer Control Configuration
+12	388	AL Word Processor	AL Word Processor
+12	389	AL Text Editor	AL Text Editor
+12	390	AL Spreadsheet	AL Spreadsheet
+12	391	AL Graphics Editor	AL Graphics Editor
+12	392	AL Presentation App	AL Presentation App
+12	393	AL Database App	AL Database App
+12	394	AL Email Reader	AL Email Reader
+12	395	AL Newsreader	AL Newsreader
+12	396	AL Voicemail	AL Voicemail
+12	397	AL Contacts/Address Book	AL Contacts/Address Book
+12	398	AL Calendar/Schedule	AL Calendar/Schedule
+12	399	AL Task/Project Manager	AL Task/Project Manager
+12	400	AL Log/Journal/Timecard	AL Log/Journal/Timecard
+12	401	AL Checkbook/Finance	AL Checkbook/Finance
+12	402	AL Calculator	AL Calculator
+12	403	AL A/V Capture/Playback	AL A/V Capture/Playback
+12	404	AL Local Machine Browser	AL Local Machine Browser
+12	405	AL LAN/WAN Browser	AL LAN/WAN Browser
+12	406	AL Internet Browser	AL Internet Browser
+12	407	AL Remote Networking/ISP Connect	AL Remote Networking/ISP Connect
+12	408	AL Network Conference	AL Network Conference
+12	409	AL Network Chat	AL Network Chat
+12	410	AL Telephony/Dialer	AL Telephony/Dialer
+12	411	AL Logon	AL Logon
+12	412	AL Logoff	AL Logoff
+12	413	AL Logon/Logoff	AL Logon/Logoff
+12	414	AL Terminal Lock/Screensaver	AL Terminal Lock/Screensaver
+12	415	AL Control Panel	AL Control Panel
+12	416	AL Command Line Processor/Run	AL Command Line Processor/Run
+12	417	AL Process/Task Manager	AL Process/Task Manager
+12	418	AL Select Task/Application	AL Select Task/Application
+12	419	AL Next Task/Application	AL Next Task/Application
+12	420	AL Previous Task/Application	AL Previous Task/Application
+12	421	AL Preemptive Halt Task/Application	AL Preemptive Halt Task/Application
+12	422	AL Integrated Help Center	AL Integrated Help Center
+12	423	AL Documents	AL Documents
+12	424	AL Thesaurus	AL Thesaurus
+12	425	AL Dictionary	AL Dictionary
+12	426	AL Desktop	AL Desktop
+12	427	AL Spell Check	AL Spell Check
+12	428	AL Grammar Check	AL Grammar Check
+12	429	AL Wireless Status	AL Wireless Status
+12	430	AL Keyboard Layout	AL Keyboard Layout
+12	431	AL Virus Protection	AL Virus Protection
+12	432	AL Encryption	AL Encryption
+12	433	AL Screen Saver	AL Screen Saver
+12	434	AL Alarms	AL Alarms
+12	435	AL Clock	AL Clock
+12	436	AL File Browser	AL File Browser
+12	437	AL Power Status	AL Power Status
+12	438	AL Image Browser	AL Image Browser
+12	439	AL Audio Browser	AL Audio Browser
+12	440	AL Movie Browser	AL Movie Browser
+12	441	AL Digital Rights Manager	AL Digital Rights Manager
+12	442	AL Digital Wallet	AL Digital Wallet
+12	444	AL Instant Messaging	AL Instant Messaging
+12	445	AL OEM Features/ Tips/Tutorial Browser	AL OEM Features/ Tips/Tutorial Browser
+12	446	AL OEM Help	AL OEM Help
+12	447	AL Online Community	AL Online Community
+12	448	AL Entertainment Content Browser	AL Entertainment Content Browser
+12	449	AL Online Shopping Browser	AL Online Shopping Browser
+12	450	AL SmartCard Information/Help	AL SmartCard Information/Help
+12	451	AL Market Monitor/Finance Browser	AL Market Monitor/Finance Browser
+12	452	AL Customized Corporate News Browser	AL Customized Corporate News Browser
+12	453	AL Online Activity Browser	AL Online Activity Browser
+12	454	AL Research/Search Browser	AL Research/Search Browser
+12	455	AL Audio Player	AL Audio Player
+12	456	AL Message Status	AL Message Status
+12	457	AL Contact Sync	AL Contact Sync
+12	458	AL Navigation	AL Navigation
+12	459	AL Context‐aware Desktop Assistant	AL Context‐aware Desktop Assistant
+12	512	Generic GUI Application Controls	Generic GUI Application Controls
+12	513	AC New	AC New
+12	514	AC Open	AC Open
+12	515	AC Close	AC Close
+12	516	AC Exit	AC Exit
+12	517	AC Maximize	AC Maximize
+12	518	AC Minimize	AC Minimize
+12	519	AC Save	AC Save
+12	520	AC Print	AC Print
+12	521	AC Properties	AC Properties
+12	538	AC Undo	AC Undo
+12	539	AC Copy	AC Copy
+12	540	AC Cut	AC Cut
+12	541	AC Paste	AC Paste
+12	542	AC Select All	AC Select All
+12	543	AC Find	AC Find
+12	544	AC Find and Replace	AC Find and Replace
+12	545	AC Search	AC Search
+12	546	AC Go To	AC Go To
+12	547	AC Home	AC Home
+12	548	AC Back	AC Back
+12	549	AC Forward	AC Forward
+12	550	AC Stop	AC Stop
+12	551	AC Refresh	AC Refresh
+12	552	AC Previous Link	AC Previous Link
+12	553	AC Next Link	AC Next Link
+12	554	AC Bookmarks	AC Bookmarks
+12	555	AC History	AC History
+12	556	AC Subscriptions	AC Subscriptions
+12	557	AC Zoom In	AC Zoom In
+12	558	AC Zoom Out	AC Zoom Out
+12	559	AC Zoom	AC Zoom
+12	560	AC Full Screen View	AC Full Screen View
+12	561	AC Normal View	AC Normal View
+12	562	AC View Toggle	AC View Toggle
+12	563	AC Scroll Up	AC Scroll Up
+12	564	AC Scroll Down	AC Scroll Down
+12	565	AC Scroll	AC Scroll
+12	566	AC Pan Left	AC Pan Left
+12	567	AC Pan Right	AC Pan Right
+12	568	AC Pan	AC Pan
+12	569	AC New Window	AC New Window
+12	570	AC Tile Horizontally	AC Tile Horizontally
+12	571	AC Tile Vertically	AC Tile Vertically
+12	572	AC Format	AC Format
+12	573	AC Edit	AC Edit
+12	574	AC Bold	AC Bold
+12	575	AC Italics	AC Italics
+12	576	AC Underline	AC Underline
+12	577	AC Strikethrough	AC Strikethrough
+12	578	AC Subscript	AC Subscript
+12	579	AC Superscript	AC Superscript
+12	580	AC All Caps	AC All Caps
+12	581	AC Rotate	AC Rotate
+12	582	AC Resize	AC Resize
+12	583	AC Flip Horizontal	AC Flip Horizontal
+12	584	AC Flip Vertical	AC Flip Vertical
+12	585	AC Mirror Horizontal	AC Mirror Horizontal
+12	586	AC Mirror Vertical	AC Mirror Vertical
+12	587	AC Font Select	AC Font Select
+12	588	AC Font Color	AC Font Color
+12	589	AC Font Size	AC Font Size
+12	590	AC Justify Left	AC Justify Left
+12	591	AC Justify Center H	AC Justify Center H
+12	592	AC Justify Right	AC Justify Right
+12	593	AC Justify Block H	AC Justify Block H
+12	594	AC Justify Top	AC Justify Top
+12	595	AC Justify Center V	AC Justify Center V
+12	596	AC Justify Bottom	AC Justify Bottom
+12	597	AC Justify Block V	AC Justify Block V
+12	598	AC Indent Decrease	AC Indent Decrease
+12	599	AC Indent Increase	AC Indent Increase
+12	600	AC Numbered List	AC Numbered List
+12	601	AC Restart Numbering	AC Restart Numbering
+12	602	AC Bulleted List	AC Bulleted List
+12	603	AC Promote	AC Promote
+12	604	AC Demote	AC Demote
+12	605	AC Yes	AC Yes
+12	606	AC No	AC No
+12	607	AC Cancel	AC Cancel
+12	608	AC Catalog	AC Catalog
+12	609	AC Buy/Checkout	AC Buy/Checkout
+12	610	AC Add to Cart	AC Add to Cart
+12	611	AC Expand	AC Expand
+12	612	AC Expand All	AC Expand All
+12	613	AC Collapse	AC Collapse
+12	614	AC Collapse All	AC Collapse All
+12	615	AC Print Preview	AC Print Preview
+12	616	AC Paste Special	AC Paste Special
+12	617	AC Insert Mode	AC Insert Mode
+12	618	AC Delete	AC Delete
+12	619	AC Lock	AC Lock
+12	620	AC Unlock	AC Unlock
+12	621	AC Protect	AC Protect
+12	622	AC Unprotect	AC Unprotect
+12	623	AC Attach Comment	AC Attach Comment
+12	624	AC Delete Comment	AC Delete Comment
+12	625	AC View Comment	AC View Comment
+12	626	AC Select Word	AC Select Word
+12	627	AC Select Sentence	AC Select Sentence
+12	628	AC Select Paragraph	AC Select Paragraph
+12	629	AC Select Column	AC Select Column
+12	630	AC Select Row	AC Select Row
+12	631	AC Select Table	AC Select Table
+12	632	AC Select Object	AC Select Object
+12	633	AC Redo/Repeat	AC Redo/Repeat
+12	634	AC Sort	AC Sort
+12	635	AC Sort Ascending	AC Sort Ascending
+12	636	AC Sort Descending	AC Sort Descending
+12	637	AC Filter	AC Filter
+12	638	AC Set Clock	AC Set Clock
+12	639	AC View Clock	AC View Clock
+12	640	AC Select Time Zone	AC Select Time Zone
+12	641	AC Edit Time Zones	AC Edit Time Zones
+12	642	AC Set Alarm	AC Set Alarm
+12	643	AC Clear Alarm	AC Clear Alarm
+12	644	AC Snooze Alarm	AC Snooze Alarm
+12	645	AC Reset Alarm	AC Reset Alarm
+12	646	AC Synchronize	AC Synchronize
+12	647	AC Send/Receive	AC Send/Receive
+12	648	AC Send To	AC Send To
+12	649	AC Reply	AC Reply
+12	650	AC Reply All	AC Reply All
+12	651	AC Forward Msg	AC Forward Msg
+12	652	AC Send	AC Send
+12	653	AC Attach File	AC Attach File
+12	654	AC Upload	AC Upload
+12	655	AC Download (Save Target As)	AC Download (Save Target As)
+12	656	AC Set Borders	AC Set Borders
+12	657	AC Insert Row	AC Insert Row
+12	658	AC Insert Column	AC Insert Column
+12	659	AC Insert File	AC Insert File
+12	660	AC Insert Picture	AC Insert Picture
+12	661	AC Insert Object	AC Insert Object
+12	662	AC Insert Symbol	AC Insert Symbol
+12	663	AC Save and Close	AC Save and Close
+12	664	AC Rename	AC Rename
+12	665	AC Merge	AC Merge
+12	666	AC Split	AC Split
+12	667	AC Disribute Horizontally	AC Disribute Horizontally
+12	668	AC Distribute Vertically	AC Distribute Vertically
+12	669	AC Next Keyboard Layout Select	AC Next Keyboard Layout Select
+12	670	AC Navigation Guidance	AC Navigation Guidance
+12	671	AC Desktop Show All Windows	AC Desktop Show All Windows
+12	672	AC Soft Key Left	AC Soft Key Left
+12	673	AC Soft Key Right	AC Soft Key Right
+12	674	AC Desktop Show All Applications	AC Desktop Show All Applications
+12	688	AC Idle Keep Alive	AC Idle Keep Alive
+12	704	Extended Keyboard Attributes Collection	Extended Keyboard Attributes Collection
+12	705	Form Factor	Keyboard Form Factor
+12	706	Key Type	Keyboard Key Type
+12	707	Physical Layout	Keyboard Physical Layout
+12	708	Vendor‐Specific Keyboard Physical Layout	Vendor‐Specific Keyboard Physical Layout
+12	709	IETF Language Tag Index	Keyboard IETF Language Tag Index
+12	710	Implemented Keyboard Input Assist Controls	Implemented Keyboard Input Assist Controls
+12	711	Input Assist Previous	Keyboard Input Assist Previous
+12	712	Input Assist Next	Keyboard Input Assist Next
+12	713	Input Assist Previous Group	Keyboard Input Assist Previous Group
+12	714	Input Assist Next Group	Keyboard Input Assist Next Group
+12	715	Input Assist Accept	Keyboard Input Assist Accept
+12	716	Input Assist Cancel	Keyboard Input Assist Cancel
+12	720	Privacy Screen Toggle	Privacy Screen Toggle
+12	721	Privacy Screen Level Decrement	Privacy Screen Level Decrement
+12	722	Privacy Screen Level Increment	Privacy Screen Level Increment
+12	723	Privacy Screen Level Minimum	Privacy Screen Level Minimum
+12	724	Privacy Screen Level Maximum	Privacy Screen Level Maximum
+12	1280	Contact Edited	Contact Edited
+12	1281	Contact Added	Contact Added
+12	1282	Contact Record Active	Contact Record Active
+12	1283	Contact Index	Contact Index
+12	1284	Contact Nickname	Contact Nickname
+12	1285	Contact First Name	Contact First Name
+12	1286	Contact Last Name	Contact Last Name
+12	1287	Contact Full Name	Contact Full Name
+12	1288	Contact Phone Number Personal	Contact Phone Number Personal
+12	1289	Contact Phone Number Business	Contact Phone Number Business
+12	1290	Contact Phone Number Mobile	Contact Phone Number Mobile
+12	1291	Contact Phone Number Pager	Contact Phone Number Pager
+12	1292	Contact Phone Number Fax	Contact Phone Number Fax
+12	1293	Contact Phone Number Other	Contact Phone Number Other
+12	1294	Contact Email Personal	Contact Email Personal
+12	1295	Contact Email Business	Contact Email Business
+12	1296	Contact Email Other	Contact Email Other
+12	1297	Contact Email Main	Contact Email Main
+12	1298	Contact Speed Dial Number	Contact Speed Dial Number
+12	1299	Contact Status Flag	Contact Status Flag
+12	1300	Contact Misc.	Contact Misc.
+7	4	A	Keyboard A
+7	5	B	Keyboard B
+7	6	C	Keyboard C
+7	7	D	Keyboard D
+7	8	E	Keyboard E
+7	9	F	Keyboard F
+7	10	G	Keyboard G
+7	11	H	Keyboard H
+7	12	I	Keyboard I
+7	13	J	Keyboard J
+7	14	K	Keyboard K
+7	15	L	Keyboard L
+7	16	M	Keyboard M
+7	17	N	Keyboard N
+7	18	O	Keyboard O
+7	19	P	Keyboard P
+7	20	Q	Keyboard Q
+7	21	R	Keyboard R
+7	22	S	Keyboard S
+7	23	T	Keyboard T
+7	24	U	Keyboard U
+7	25	V	Keyboard V
+7	26	W	Keyboard W
+7	27	X	Keyboard X
+7	28	Y	Keyboard Y
+7	29	Z	Keyboard Z
+7	30	1	Keyboard 1 and Bang
+7	31	2	Keyboard 2 and At
+7	32	3	Keyboard 3 and Hash
+7	33	4	Keyboard 4 and Dollar
+7	34	5	Keyboard 5 and Percent
+7	35	6	Keyboard 6 and Caret
+7	36	7	Keyboard 7 and Ampersand
+7	37	8	Keyboard 8 and Star
+7	38	9	Keyboard 9 and Left Bracket
+7	39	0	Keyboard 0 and Right Bracket
+7	40	Ret	Return
+7	41	Esc	Escape
+7	42	BkSp	Backspace
+7	43	Tab	Keyboard Tab
+7	44	␣	Space
+7	45	-	Dash
+7	46	=	Equals
+7	47	{	Keyboard Left Brace
+7	48	}	Keyboard Right Brace
+7	49	\	Keyboard Backslash and Pipe
+7	50	NUHS	NonUS Hash
+7	51	;	Keyboard SemiColon and Colon
+7	52	'	Keyboard Left Apos and Double
+7	53	`	Keyboard Grave Accent and Tilde
+7	54	,	Keyboard Comma and LessThan
+7	55	.	Keyboard Period and GreaterThan
+7	56	/	Keyboard ForwardSlash and QuestionMark
+7	57	Cap	Caps Lock
+7	58	F1	Keyboard F1
+7	59	F2	Keyboard F2
+7	60	F3	Keyboard F3
+7	61	F4	Keyboard F4
+7	62	F5	Keyboard F5
+7	63	F6	Keyboard F6
+7	64	F7	Keyboard F7
+7	65	F8	Keyboard F8
+7	66	F9	Keyboard F9
+7	67	F10	Keyboard F10
+7	68	F11	Keyboard F11
+7	69	F12	Keyboard F12
+7	70	PrSc	Print Scr
+7	71	ScLk	ScrollLock
+7	72	Paus	Pause
+7	73	Ins	Insert
+7	74	Home	Keyboard Home
+7	75	PgUp	Page Up
+7	76	Del	Delete
+7	77	End	Keyboard End
+7	78	PgDn	Page Down
+7	79	→	Keyboard RightArrow
+7	80	←	Keyboard LeftArrow
+7	81	↓	Keyboard DownArrow
+7	82	↑	Keyboard UpArrow
+7	83	Num	Num Lock
+7	84	/	Keypad ForwardSlash
+7	85	*	Keypad Star
+7	86	-	Keypad Dash
+7	87	+	Keypad Plus
+7	88	Ent	KP Enter
+7	89	1 En	1 End
+7	90	2 ↓	Keypad 2 and Down Arrow
+7	91	3 PD	3 PgDn
+7	92	4 ←	Keypad 4 and Left Arrow
+7	93	5	Keypad 5
+7	94	6 →	Keypad 6 and Right Arrow
+7	95	7 Hm	7 Home
+7	96	8 ↑	Keypad 8 and Up Arrow
+7	97	9 PU	9 PgUp
+7	98	0 In	0 Insert
+7	99	. Dl	. Delete
+7	100	NUBS	Keyboard Non-US Backslash and Pipe
+7	101	Appl	Applicat'n
+7	102	Power	Power
+7	103	=	Keypad Equals
+7	104	F13	Keyboard F13
+7	105	F14	Keyboard F14
+7	106	F15	Keyboard F15
+7	107	F16	Keyboard F16
+7	108	F17	Keyboard F17
+7	109	F18	Keyboard F18
+7	110	F19	Keyboard F19
+7	111	F20	Keyboard F20
+7	112	F21	Keyboard F21
+7	113	F22	Keyboard F22
+7	114	F23	Keyboard F23
+7	115	F24	Keyboard F24
+7	116	Execute	Keyboard Execute
+7	117	Help	Keyboard Help
+7	118	Menu	Keyboard Menu
+7	119	Select	Keyboard Select
+7	120	Stop	Keyboard Stop
+7	121	Again	Keyboard Again
+7	122	Undo	Keyboard Undo
+7	123	Cut	Keyboard Cut
+7	124	Copy	Keyboard Copy
+7	125	Paste	Keyboard Paste
+7	126	Find	Keyboard Find
+7	127	Mute	Keyboard Mute
+7	128	Volume Up	Keyboard Volume Up
+7	129	Volume Down	Keyboard Volume Down
+7	130	Locking Caps Lock	Keyboard Locking Caps Lock
+7	131	Locking Num Lock	Keyboard Locking Num Lock
+7	132	Locking Scroll Lock	Keyboard Locking Scroll Lock
+7	133	,	Keypad Comma
+7	134	=	Keypad Equal Sign
+7	135	International1	Keyboard International1
+7	136	International2	Keyboard International2
+7	137	International3	Keyboard International3
+7	138	International4	Keyboard International4
+7	139	International5	Keyboard International5
+7	140	International6	Keyboard International6
+7	141	International7	Keyboard International7
+7	142	International8	Keyboard International8
+7	143	International9	Keyboard International9
+7	144	LANG1	Keyboard LANG1
+7	145	LANG2	Keyboard LANG2
+7	146	LANG3	Keyboard LANG3
+7	147	LANG4	Keyboard LANG4
+7	148	LANG5	Keyboard LANG5
+7	149	LANG6	Keyboard LANG6
+7	150	LANG7	Keyboard LANG7
+7	151	LANG8	Keyboard LANG8
+7	152	LANG9	Keyboard LANG9
+7	153	Alternate Erase	Keyboard Alternate Erase
+7	154	SysReq Attention	Keyboard SysReq Attention
+7	155	Cancel	Keyboard Cancel
+7	156	Clear	Keyboard Clear
+7	157	Prior	Keyboard Prior
+7	158	Return	Keyboard Return
+7	159	Separator	Keyboard Separator
+7	160	Out	Keyboard Out
+7	161	Oper	Keyboard Oper
+7	162	Clear Again	Keyboard Clear Again
+7	163	CrSel Props	Keyboard CrSel Props
+7	164	ExSel	Keyboard ExSel
+7	224	Ctrl	L Ctrl
+7	225	Shft	L Shift
+7	226	Alt	Left Alt
+7	227	GUI	Left GUI
+7	228	Ctrl	R Ctrl
+7	229	Shft	R Shift
+7	230	AltG	AltGr
+7	231	GUI	Right GUI

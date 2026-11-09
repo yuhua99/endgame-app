@@ -1,0 +1,15 @@
+[package]
+name = "eg-app"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "endgame"
+path = "src/main.rs"
+
+[dependencies]
+dioxus.workspace = true
+eg-device.workspace = true
+eg-transport.workspace = true
+env_logger.workspace = true
