@@ -183,44 +183,47 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
             }
             button { disabled: busy_now || !unsaved(), onclick: move |_| change(ChangeOp::Save), "Save" }
         }
-        if is_endgame {
+        // The Endgame drawing stays on the left with the editor beside it; other layouts stack.
+        div { class: if is_endgame { "keymap-body split" } else { "keymap-body" },
             div { class: "layout-wrap",
-                EndgameLayout { caps, selected: selected(), on_select: move |pos| selected.set(Some(pos)) }
-            }
-        } else {
-            div { class: "layout-wrap",
-                div { class: "layout", style: "width: {width}px; height: {height}px;",
-                    for cap in caps {
-                        button {
-                            key: "{cap.pos}",
-                            class: if selected() == Some(cap.pos) { "key selected" } else { "key" },
-                            style: "{cap.style}",
-                            title: "{cap.title}",
-                            onclick: move |_| selected.set(Some(cap.pos)),
-                            span { class: "hdr", "{cap.header}" }
-                            span { class: "lbl", "{cap.label}" }
+                if is_endgame {
+                    EndgameLayout { caps, selected: selected(), on_select: move |pos| selected.set(Some(pos)) }
+                } else {
+                    div { class: "layout", style: "width: {width}px; height: {height}px;",
+                        for cap in caps {
+                            button {
+                                key: "{cap.pos}",
+                                class: if selected() == Some(cap.pos) { "key selected" } else { "key" },
+                                style: "{cap.style}",
+                                title: "{cap.title}",
+                                onclick: move |_| selected.set(Some(cap.pos)),
+                                span { class: "hdr", "{cap.header}" }
+                                span { class: "lbl", "{cap.label}" }
+                            }
                         }
                     }
                 }
             }
-        }
-        if let Some(e) = error() {
-            p { class: "error", "{e}" }
-        }
-        if let Some((pos, binding)) = editing {
-            BindingEditor {
-                key: "{layer.id}-{pos}",
-                position: pos,
-                binding,
-                behaviors: d.behaviors.clone(),
-                layers: layers.clone(),
-                disabled: busy_now || locked() == Some(true),
-                on_change: move |b: BehaviorBinding| {
-                    spawn(change(ChangeOp::Bind { layer_id: layer.id, position: pos as i32, binding: b }));
-                },
+            div {
+                if let Some(e) = error() {
+                    p { class: "error", "{e}" }
+                }
+                if let Some((pos, binding)) = editing {
+                    BindingEditor {
+                        key: "{layer.id}-{pos}",
+                        position: pos,
+                        binding,
+                        behaviors: d.behaviors.clone(),
+                        layers: layers.clone(),
+                        disabled: busy_now || locked() == Some(true),
+                        on_change: move |b: BehaviorBinding| {
+                            spawn(change(ChangeOp::Bind { layer_id: layer.id, position: pos as i32, binding: b }));
+                        },
+                    }
+                } else {
+                    p { class: "placeholder", "Select a key to change its binding." }
+                }
             }
-        } else {
-            p { class: "placeholder", "Select a key to change its binding." }
         }
     }
 }

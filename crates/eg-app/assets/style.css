@@ -62,6 +62,7 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .toolbar { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
 .toolbar .spacer { flex: 1; }
 .toolbar .tab { border-bottom: 2px solid transparent; }
+.keymap-body.split { display: grid; grid-template-columns: minmax(0, 440px) minmax(300px, 1fr); gap: 24px; align-items: start; }
 .layout-wrap { overflow: auto; padding: 8px 0 16px; }
 .layout { position: relative; margin: 0 auto; }
 .key {
@@ -81,8 +82,9 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .endgame .lbl { font-size: 22px; font-weight: 600; }
 .editor select, .editor input[type=search] {
   background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit;
+  width: 100%; min-width: 0; box-sizing: border-box;
 }
-.editor .row { grid-template-columns: 180px 1fr; }
+.editor .row { grid-template-columns: 96px minmax(0, 1fr); }
 .hid { display: flex; flex-direction: column; gap: 6px; }
 .mods { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 12px; }
 .mods label { display: flex; align-items: center; gap: 4px; }

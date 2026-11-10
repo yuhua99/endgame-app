@@ -33,8 +33,8 @@ const SIDE_UPPER: &str = "M 92 163 A 45.5 45.5 0 0 1 180.4 147.7 L 222.9 266.9 Q
 const SIDE_LOWER: &str = "M 92 429 A 8 8 0 0 1 100 421 L 166.3 421 Q 172.3 421 173 427 A 207 207 0 0 0 232.4 549.1 Q 236.7 553.3 232.3 557.4 L 162.5 621.9 A 42 42 0 0 1 92 591 L 92 429 Z";
 const BOTTOM: &str = "M 251.2 568.7 Q 255 565.5 259.1 568.5 A 204.5 204.5 0 0 0 362 606.3 Q 368 606.7 368 612.7 L 368 670 A 8 8 0 0 1 360 678 L 202.3 678 A 30 30 0 0 1 183.2 624.9 L 251.2 568.7 Z";
 /// Left and right halves of an encoder pill centered at x = 0.
-const ENC_CCW: &str = "M -2 760 L -98 760 A 30 30 0 0 0 -98 820 L -2 820 Z";
-const ENC_CW: &str = "M 2 760 L 98 760 A 30 30 0 0 1 98 820 L 2 820 Z";
+const ENC_CCW: &str = "M -2 760 L -123 760 A 30 30 0 0 0 -123 820 L -2 820 Z";
+const ENC_CW: &str = "M 2 760 L 123 760 A 30 30 0 0 1 123 820 L 2 820 Z";
 /// Mirrors the left-half shapes onto the right half.
 const MIRROR: &str = "translate(757,0) scale(-1,1)";
 
@@ -61,19 +61,18 @@ fn shape(pos: usize) -> Option<Shape> {
         5 => key(SIDE_LOWER, true, (619, 510)),
         6 => key(BOTTOM, false, (282, 640)),
         7 => key(BOTTOM, true, (475, 640)),
-        8 => Shape { at: (170, 790), ..enc(ENC_CCW, 220, "↺ ") },
-        10 => Shape { at: (270, 790), ..enc(ENC_CW, 220, "↻ ") },
-        11 => Shape { at: (487, 790), ..enc(ENC_CCW, 537, "↺ ") },
-        9 => Shape { at: (587, 790), ..enc(ENC_CW, 537, "↻ ") },
+        8 => Shape { at: (142, 790), ..enc(ENC_CCW, 219, "↺ ") },
+        10 => Shape { at: (296, 790), ..enc(ENC_CW, 219, "↻ ") },
+        11 => Shape { at: (461, 790), ..enc(ENC_CCW, 538, "↺ ") },
+        9 => Shape { at: (615, 790), ..enc(ENC_CW, 538, "↻ ") },
         _ => return None,
     })
 }
 
 const BODY: &str = r##"<rect x="64" y="19" width="629" height="711" rx="95" fill="#2a2d33" stroke="#454a53" stroke-width="2"/>
 <rect x="80" y="55" width="597" height="645" rx="70" fill="#1f2126"/>
-<text class="caption" x="220" y="750">Encoder</text><text class="caption" x="537" y="750">Encoder</text>"##;
-const BALL: &str = r##"<defs><radialGradient id="eg-ball" cx="0.65" cy="0.35" r="0.75"><stop offset="0" stop-color="#ff9090"/><stop offset="0.3" stop-color="#e01414"/><stop offset="1" stop-color="#5c0000"/></radialGradient></defs>
-<circle cx="378.5" cy="402.5" r="191" fill="url(#eg-ball)"/>"##;
+<circle cx="378.5" cy="402.5" r="191" fill="#2a2d33" stroke="#454a53" stroke-width="2"/>
+<text class="caption" x="219" y="750">Encoder</text><text class="caption" x="538" y="750">Encoder</text>"##;
 
 #[component]
 pub fn EndgameLayout(caps: Vec<Cap>, selected: Option<usize>, on_select: EventHandler<usize>) -> Element {
@@ -93,7 +92,6 @@ pub fn EndgameLayout(caps: Vec<Cap>, selected: Option<usize>, on_select: EventHa
                     }
                 }
             }
-            g { dangerous_inner_html: BALL }
         }
     }
 }
