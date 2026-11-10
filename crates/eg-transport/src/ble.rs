@@ -31,6 +31,29 @@ pub async fn scan() -> Result<Vec<DeviceInfo>> {
 
     let mut seen = HashSet::new();
     let mut found = Vec::new();
+    // Windows matches connected devices against its cached service list, which may lack the
+    // shell service, and ZMK does not advertise it. So ask each connected device directly
+    // (uncached), as Web Bluetooth does.
+    let connected = adapter.connected_devices().await.unwrap_or_else(|e| {
+        log::warn!("scan: listing connected devices failed: {e}");
+        Vec::new()
+    });
+    log::info!("scan: {} connected BLE devices", connected.len());
+    for device in connected {
+        let has_shell = tokio::time::timeout(SCAN_TIME, has_service(&device, SHELL_SVC)).await;
+        let name = device.name_async().await.unwrap_or_else(|_| "Unknown".into());
+        match has_shell {
+            Ok(Ok(true)) => {
+                log::info!("scan: {name} has the shell service");
+                seen.insert(device.id());
+                found.push(DeviceInfo { name, adapter: adapter.clone(), device });
+            }
+            Ok(Ok(false)) => log::info!("scan: {name} has no shell service"),
+            Ok(Err(e)) => log::info!("scan: {name}: {e}"),
+            Err(_) => log::info!("scan: {name}: service query timed out"),
+        }
+    }
+
     let mut devices = adapter
         .discover_devices(&[SHELL_SVC])
         .await?
@@ -47,10 +70,21 @@ pub async fn scan() -> Result<Vec<DeviceInfo>> {
             continue;
         }
         let name = device.name_async().await.unwrap_or_else(|_| "Unknown".into());
-        log::debug!("found {name} {:?}, connected: {}", device.id(), device.is_connected().await);
+        log::info!("scan: found {name} {:?}, connected: {}", device.id(), device.is_connected().await);
         found.push(DeviceInfo { name, adapter: adapter.clone(), device });
     }
     Ok(found)
+}
+
+/// Uncached GATT query. Uses `uuid_async` because bluer's `discover_services_with_uuid`
+/// reads UUIDs with a blocking call that panics on errors.
+async fn has_service(device: &Device, uuid: Uuid) -> Result<bool> {
+    for service in device.discover_services().await? {
+        if service.uuid_async().await? == uuid {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 pub struct Connection {
