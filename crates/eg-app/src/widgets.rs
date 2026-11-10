@@ -89,7 +89,6 @@ pub fn Actions(
     on_apply: EventHandler,
 ) -> Element {
     rsx! {
-        div { class: "actions-space" }
         footer { class: "actions",
             if let Some(e) = error.as_ref() {
                 span { class: "error", "{e}" }

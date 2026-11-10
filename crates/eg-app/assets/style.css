@@ -42,7 +42,16 @@ button.ghost { background: transparent; color: var(--text); border: 1px solid va
 }
 .tab.active { color: var(--text); border-bottom-color: var(--accent); }
 
-.content { padding: 20px; }
+/* Page shell: top bar and tabs keep their height, the open tab gets the rest of the window.
+   A tab scrolls by itself when its content is taller, and its action bar stays at the bottom. */
+.shell { height: 100vh; display: flex; flex-direction: column; }
+.content { flex: 1; min-height: 0; }
+.pane {
+  height: 100%; box-sizing: border-box; padding: 20px 20px 0; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.pane[hidden] { display: none; }
+.pane > * { flex-shrink: 0; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
 .row { display: grid; grid-template-columns: 180px 1fr 90px; align-items: center; gap: 12px; padding: 6px 0; }
 .row input[type=number] {
@@ -62,7 +71,12 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .toolbar { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
 .toolbar .spacer { flex: 1; }
 .toolbar .tab { border-bottom: 2px solid transparent; }
-.keymap-body.split { display: grid; grid-template-columns: minmax(0, 440px) minmax(300px, 1fr); gap: 24px; align-items: start; }
+/* Takes the height left in the tab, so the drawing scales with the window instead of scrolling. */
+.keymap-body.split {
+  flex: 1 1 0; min-height: 280px; display: grid; gap: 24px;
+  grid-template-columns: minmax(0, 440px) minmax(300px, 1fr); grid-template-rows: minmax(0, 1fr);
+}
+.keymap-body.split > * { min-height: 0; overflow-y: auto; }
 .layout-wrap { overflow: auto; padding: 8px 0 16px; }
 .layout { position: relative; margin: 0 auto; }
 .key {
@@ -73,7 +87,8 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .key.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .key .hdr { font-size: 9px; color: var(--muted); white-space: nowrap; }
 .key .lbl { font-size: 12px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%; }
-.endgame { display: block; width: 100%; max-width: 440px; margin: 0 auto; }
+/* Height follows the window (minus top bar, tabs, layer tabs, and action bar) so the page need not scroll. */
+.endgame { display: block; width: 100%; height: 100%; max-width: 440px; margin: 0 auto; }
 .endgame .ekey { fill: #343841; stroke: #4f5662; stroke-width: 2; cursor: pointer; }
 .endgame .ekey:hover { fill: #3d424c; }
 .endgame .ekey.selected { fill: #2c3656; stroke: var(--accent); stroke-width: 5; }
@@ -89,10 +104,9 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .mods { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 12px; }
 .mods label { display: flex; align-items: center; gap: 4px; }
 
-/* Keeps the last content clear of the fixed action bar. */
-.actions-space { height: 60px; }
+/* Last item of a tab: pushed to the bottom when the content is short, stuck there while it scrolls. */
 .actions {
-  position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: flex-end; align-items: center;
+  position: sticky; bottom: 0; margin: auto -20px 0; display: flex; justify-content: flex-end; align-items: center;
   gap: 8px; padding: 12px 20px; background: var(--bg); border-top: 1px solid var(--line);
 }
 .actions .error { flex: 1; }

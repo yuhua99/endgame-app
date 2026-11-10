@@ -77,7 +77,8 @@ const BODY: &str = r##"<rect x="64" y="19" width="629" height="711" rx="95" fill
 #[component]
 pub fn EndgameLayout(caps: Vec<Cap>, selected: Option<usize>, on_select: EventHandler<usize>) -> Element {
     rsx! {
-        svg { class: "endgame", view_box: "0 0 757 840",
+        // Top-aligned, so a tall tab leaves the spare room below the drawing.
+        svg { class: "endgame", view_box: "0 0 757 840", preserve_aspect_ratio: "xMidYMin meet",
             g { dangerous_inner_html: BODY }
             for cap in caps {
                 if let Some(s) = shape(cap.pos) {

@@ -38,35 +38,37 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
     };
 
     rsx! {
-        header { class: "topbar",
-            span { class: "device", "{s.name}" }
-            span { class: "firmware", "Firmware {s.firmware}" }
-            button { class: "ghost", onclick: move |_| session.set(None), "Disconnect" }
-        }
-        nav { class: "tabs",
-            for t in Tab::ALL {
-                button {
-                    key: "{t.title()}",
-                    class: if tab() == t { "tab active" } else { "tab" },
-                    onclick: move |_| {
-                        tab.set(t);
-                        if !opened.read().contains(&t) {
-                            opened.write().push(t);
-                        }
-                    },
-                    "{t.title()}"
+        div { class: "shell",
+            header { class: "topbar",
+                span { class: "device", "{s.name}" }
+                span { class: "firmware", "Firmware {s.firmware}" }
+                button { class: "ghost", onclick: move |_| session.set(None), "Disconnect" }
+            }
+            nav { class: "tabs",
+                for t in Tab::ALL {
+                    button {
+                        key: "{t.title()}",
+                        class: if tab() == t { "tab active" } else { "tab" },
+                        onclick: move |_| {
+                            tab.set(t);
+                            if !opened.read().contains(&t) {
+                                opened.write().push(t);
+                            }
+                        },
+                        "{t.title()}"
+                    }
                 }
             }
-        }
-        main { class: "content",
-            for t in opened() {
-                div { key: "{t.title()}", hidden: tab() != t,
-                    {
-                        match t {
-                            Tab::Sensor => rsx! { SensorTab { session } },
-                            Tab::Advanced => rsx! { AdvancedTab { session } },
-                            Tab::Keymap => rsx! { KeymapTab { session } },
-                            _ => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },
+            main { class: "content",
+                for t in opened() {
+                    div { key: "{t.title()}", class: "pane", hidden: tab() != t,
+                        {
+                            match t {
+                                Tab::Sensor => rsx! { SensorTab { session } },
+                                Tab::Advanced => rsx! { AdvancedTab { session } },
+                                Tab::Keymap => rsx! { KeymapTab { session } },
+                                _ => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },
+                            }
                         }
                     }
                 }
