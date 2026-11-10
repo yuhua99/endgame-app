@@ -1,18 +1,18 @@
 # Endgame App — Architecture
 
-Desktop app for configuring the efog.tech Endgame trackball (ZMK firmware) over BLE, USB, or the 1k dongle.
+Desktop app for configuring the efog.tech Endgame trackball (ZMK firmware) over BLE.
 Goal: cover all Marshmellow UI features plus ZMK-Studio-style key remapping.
 
 Stack: Rust only. UI uses Dioxus desktop (native Rust process rendering to a webview via wry). No Tauri, no IPC, no TypeScript.
 
 ## Device protocols
 
-The device exposes up to three channels; which ones are available depends on how it is connected.
+The device exposes up to three channels; which ones are available depends on how it is connected. The app connects over BLE and uses the shell and studio channels.
 
 | Connection | shell (text) | studio (protobuf RPC) | data (stream) |
 |---|---|---|---|
 | BLE direct | GATT svc `c901c4e9-5770-4bf1-96b2-2dd287813e6e`, chrc `c901c4ea-…` (write-without-resp + notify) | GATT svc `00000000-0196-6107-c967-c5cfb1c2482a`, chrc `00000001-0196-6107-c967-c5cfb1c2482a` | chrc `c901c4eb-…` (notify) |
-| USB direct (VID 0x0011, PID 6) | CDC ACM serial | CDC ACM serial (separate port? unverified) | same as shell |
+| USB direct (VID 0x0011, PID 6) | CDC ACM serial | CDC ACM serial (unverified) | same as shell |
 | Dongle (VID 0x0011, PID 7) | CDC ACM, relayed over ESB | not supported | not supported |
 
 ### Shell (Zephyr shell)
@@ -36,33 +36,31 @@ The device exposes up to three channels; which ones are available depends on how
 ## Crates
 
 ```
-                    eg-app (bin, Dioxus desktop)
-                   /            |             \
-           eg-device        eg-firmware      dioxus
-          /    |     \
-   eg-shell eg-studio eg-transport
-        \      |      /
-      tokio::mpsc (Link = a pair of channels)
+          eg-app (bin, Dioxus desktop)
+          /         \
+     eg-device      dioxus
+    /    |     \
+eg-shell eg-studio eg-transport
+    \      |      /
+  tokio::mpsc (Link = a pair of channels)
 ```
 
-Only `eg-app` depends on Dioxus. `eg-shell` / `eg-studio` do not depend on `eg-transport`; they take a `Link`, so tests feed them plain channels.
+Only `eg-app` depends on Dioxus. `eg-shell` / `eg-studio` do not depend on `eg-transport`; they take a `Link`'s channels, so tests feed them plain channels. `eg-app` also uses `eg-transport` directly, to scan for devices.
 
 ```
 endgame-app/
   Cargo.toml                 [workspace]
   crates/
-    eg-transport/  src/{lib, ble, serial, discovery}.rs
+    eg-transport/  src/{lib, ble}.rs
     eg-shell/      src/{lib, framer, client}.rs
     eg-studio/     src/{lib, framing, client}.rs, build.rs (prost), proto/ (zmk-studio-messages)
-    eg-device/     src/{lib, session, caps}.rs
-                   src/features/{sensor, rtcfg, keymap_slots, output, backup, lighting,
-                                 bistable, curves, encoder, monitor, keymap}.rs
-                   tests/fixtures/*.txt        recorded device output
-    eg-firmware/   src/{lib, release, uf2}.rs
-    eg-app/        src/{main, state, registry}.rs
-                   src/pages/{connect, sensor, rtcfg, ..., keymap_editor}.rs
-                   src/widgets/{physical_layout, behavior_picker, hid_usage_picker}.rs
-                   assets/{hid-usages.json, style.css}   ported from zmk-studio, keep NOTICE
+    eg-device/     src/{lib, session}.rs
+                   src/{sensor, rtcfg, profiles, board, keymap}.rs   features
+                   tests/fixtures/v1.6.2/*.txt                       recorded device output
+    eg-app/        src/{main, connect, device}.rs                    app, connect page, device page
+                   src/{sensor, advanced, keymap, profiles, logs}.rs tabs
+                   src/{editable, widgets, endgame, hid}.rs          form state, form rows, trackball drawing, HID usages
+                   assets/{style.css, hid_usages.tsv, behavior_short_names.tsv}   tables from zmk-studio, keep NOTICE
 ```
 
 ### eg-transport
@@ -70,20 +68,20 @@ endgame-app/
 The only crate that touches the OS / hardware.
 
 ```rust
-pub struct Link { pub tx: mpsc::Sender<Vec<u8>>, pub rx: mpsc::UnboundedReceiver<Vec<u8>> } // rx ends = disconnected
-pub struct DeviceInfo { pub id: String, pub name: String, pub kind: Kind }        // Ble | Usb | Dongle
-pub async fn scan() -> Result<Vec<DeviceInfo>>;
+pub struct Link { pub tx: mpsc::Sender<Vec<u8>>, pub rx: mpsc::UnboundedReceiver<Vec<u8>> } // rx ends = channel closed
+pub struct DeviceInfo { pub name: String, /* bluest adapter and device */ }
+pub async fn scan() -> Result<Vec<DeviceInfo>>;        // connected devices first, then advertising ones
 pub async fn open(dev: &DeviceInfo) -> Result<Connection>;
 impl Connection {
-    async fn shell(&self) -> Result<Link>; // subscribes before returning
-    fn studio(&self) -> Option<Result<Link>>;
-    fn data(&self) -> Option<Result<Link>>;
+    pub async fn shell(&self) -> Result<Link>;          // subscribes before returning
+    pub async fn studio(&self) -> Option<Result<Link>>; // None = the firmware has no Studio service
 }
 ```
 
-- One BLE connection serves several characteristic links (ref-counted).
-- Hides: BLE chunking (96 B / 20 ms), macOS connected-device quirks, serial VID/PID → port mapping.
-- BLE via `bluest` (same as zmk-studio).
+- BLE via `bluest` (same as zmk-studio). BLE work runs on a tokio worker thread: the UI thread is a COM single-threaded apartment (WebView2), where awaiting WinRT Bluetooth calls can hang.
+- `scan` asks each connected device for the shell service directly, because Windows matches against a cached service list that may lack it and ZMK does not advertise it.
+- One connection serves both links. Each link is a task that owns its characteristic and reads and writes concurrently; it ends when the device disconnects, a read or write fails, or the caller drops either channel end.
+- Hides BLE chunking (96 B / 20 ms).
 
 ### eg-shell
 
@@ -91,112 +89,94 @@ impl Connection {
 impl Shell {                                                   // Clone (Arc inside)
     pub async fn open(tx: Sender<Vec<u8>>, rx: UnboundedReceiver<Vec<u8>>) -> Result<Shell>; // syncs, sends `shell echo off`
     pub async fn exec(&self, cmd: &str) -> Result<String>;
-    pub async fn exec_bg(&self, cmd: &str) -> Result<String>;  // background polling: not logged, yields to exec
+    pub async fn exec_bg(&self, cmd: &str) -> Result<String>;  // for polling: not logged
     pub fn subscribe(&self) -> broadcast::Receiver<LogLine>;   // Sent / Received / Failed of every exec
-    pub async fn stream(&self, start: &str, stop: &str) -> Result<ShellStream>; // drop sends stop
 }
 ```
 
-Inside: `Framer` (pure: bytes in → response out, split at the colored prompt, ANSI/CR stripped), one-at-a-time command queue, 10 s total timeout per command, resync via a unique unknown command (`__syncN` → `command not found`) at open and after a failed/cancelled command, `__ping` keep-alive for dongle (todo).
+Inside: `Framer` (pure: bytes in → response out, split at the colored prompt, ANSI/CR stripped), firmware log lines removed from responses, one-at-a-time command queue, 10 s total timeout per command, resync via a unique unknown command (`__syncN` → `command not found`) at open and after a failed/cancelled command.
 
 ### eg-studio
 
 ```rust
-impl Studio {
-    pub async fn open(link: Link) -> Result<Studio>;
-    pub async fn call(&self, req: studio::Request) -> Result<studio::Response>;
-    pub fn notifications(&self) -> broadcast::Receiver<studio::Notification>; // lock state, etc.
+impl Studio {                                                  // Clone (Arc inside)
+    pub fn open(tx: Sender<Vec<u8>>, rx: UnboundedReceiver<Vec<u8>>) -> Studio; // spawns the reader task
+    pub async fn call(&self, req: studio::request::Subsystem) -> Result<studio::request_response::Subsystem>;
+    pub fn notifications(&self) -> broadcast::Receiver<studio::Notification>;   // lock state, unsaved changes
 }
 ```
 
-Inside: prost codegen, frame escaping, request-id matching. Exposes prost types directly.
+Inside: prost codegen (protox in build.rs), frame escaping, request-id matching, one call at a time with a 5 s timeout. Exposes prost types directly.
 
 ### eg-device
 
 Domain layer; Marshmellow's logic lives here. No Dioxus.
 
 ```rust
+pub struct Session { pub name: String, pub firmware: String, /* shell, studio, connection */ } // Clone
 impl Session {
-    pub async fn connect(dev: &DeviceInfo) -> Result<Session>; // open + probe Capabilities
-    pub fn caps(&self) -> watch::Receiver<Capabilities>;       // updated by background `board output` polling
+    pub async fn connect(dev: &DeviceInfo) -> Result<Session>; // open, shell, `board version`, Studio if present
     pub fn shell(&self) -> &Shell;
     pub fn studio(&self) -> Option<&Studio>;
-    pub fn closed(&self) -> impl Future<Output = ()>;
-}
-
-pub struct Capabilities {
-    pub kind: Kind,
-    pub firmware: Firmware,        // version; sensor 3610 | 3395 (version >= 100 → 3395, major -= 100)
-    pub output: Output,            // Usb | Ble | Esb
-    pub shell_cmds: HashSet<String>,
-    pub studio: Option<StudioState>, // locked: bool
 }
 ```
 
-Every feature module has the same shape:
+The connection closes when the last clone drops.
+
+| Module | Covers | Over |
+|---|---|---|
+| `sensor` | sensitivity, twist, SMA, sync window, rotation, frame sync; surface quality | shell: `p2sm`, `rrl`, `plane`, `rtcfg`, `sensor surface` |
+| `rtcfg` | runtime parameters as a generic list | shell: `rtcfg` |
+| `profiles` | keymap slots, output assignments, autoswitch, OS mode | shell: `keymap`, `bistable`, `rtcfg`; asks Studio about unsaved edits |
+| `board` | battery, active output | shell: `board status`, `board output` |
+| `keymap` | layout, layers, behaviors, bindings, save/discard, lock and unsaved-changes events | Studio |
+
+Settings modules have the same shape:
 
 ```rust
-// features/sensor.rs
-pub struct SensorSettings { /* pointer_pct, twist_on, twist_reverse, twist_pct, sync_ms, plane_deg, sma_window */ }
-pub fn parse(status: &str, pointer: &str) -> Result<SensorSettings>;  // pure
-pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String>; // pure
-pub async fn read(s: &Shell) -> Result<SensorSettings>;
-pub async fn apply(s: &Shell, saved: &SensorSettings, new: &SensorSettings) -> Result<SensorSettings>; // send edited fields, re-read
+// sensor.rs
+pub struct SensorSettings { /* pointer_pct, twist_on, twist_reverse, twist_pct, sync_ms, plane_deg, sma_window, ... */ }
+pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Result<SensorSettings>; // pure
+pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String>; // pure: commands for the edited fields
+pub async fn read(shell: &Shell) -> Result<SensorSettings>;
+pub async fn apply(shell: &Shell, saved: &SensorSettings, new: &SensorSettings) -> Result<SensorSettings>; // send the diff, re-read
 ```
 
-`features/keymap.rs` wraps Studio (get keymap / set binding / save changes) and the cross-protocol flow "save changes, then `keymap save N name` via shell".
-
-### eg-firmware
-
-Independent of device connections. Download release → verify sha256 → wait for UF2 drive → copy. Port of `../endgame-updater/update_endgame.py`.
+`profiles::change` crosses protocols: a change that stores or replaces the keymap is refused while Studio reports unsaved edits.
 
 ### eg-app
 
-```rust
-// registry.rs
-struct Feature {
-    id: &'static str,
-    title: &'static str,
-    requires: fn(&Capabilities) -> Result<(), &'static str>, // Err = reason shown on disabled item
-    page: Component,
-}
-```
-
-- Dioxus signals are not `Send`; `eg-device` never sees them. One coroutine subscribes to `session.caps()` / `closed()` and writes signals. `Session` lives in context.
-- Pages: `use_resource(|| sensor::read(shell))`, Apply → `spawn(sensor::apply(..))`.
-- Sidebar is generated from the registry + capabilities.
+- `App` holds a `Signal<Option<Session>>`: `None` shows the connect page, `Some` the device page (top bar and tabs). Pages and tabs get the signal as a prop.
+- Dioxus signals are not `Send`; `eg-device` never sees them.
+- A tab is mounted on first visit and then only hidden, so switching tabs never cancels a running operation.
+- Sensor and Advanced keep an `Editable<T>`: `saved` mirrors the device, `form` holds the edits, Apply sends the difference. They read the device again when reopened without edits.
+- Polling lives here: surface quality every 100 ms while the Sensor tab is visible, battery and active output every 5 s. Both use `exec_bg`.
+- The device page subscribes to the shell log when it mounts; the Logs tab shows it and sends typed commands.
 
 ### Data flow (Apply)
 
 ```
-SensorForm ─spawn─► sensor::apply ─► Shell.exec("p2sm ...")×N ─► Link.tx ─► ble chunks
-     ▲                                      ▲
-     └──── device values ◄──── sensor::read ◄── Framer sees "endgame$ "
+SensorTab ─spawn─► sensor::apply ─► Shell.exec("p2sm ...")×N ─► Link.tx ─► ble chunks
+    ▲                                      ▲
+    └──── device values ◄──── sensor::read ◄── Framer sees "endgame$ "
 ```
 
 ## Errors
 
-One `thiserror` enum per crate. `eg-shell`: `Timeout(cmd)`, `Unsupported(cmd)`, `Closed`. `eg-device` adds `Parse(String)`. The app shows `Display` output.
+One `thiserror` enum per crate. `eg-shell`: `Timeout(cmd)`, `Unsupported(cmd)`, `Closed`. `eg-device` wraps the transport, shell, and Studio errors and adds `Rejected`, `UnsavedKeymap`, and `Parse { cmd, output }`. The app shows `Display` output.
 
 ## Tests
 
 | Crate | What |
 |---|---|
-| eg-shell | Framer split edges; queue + timeout with an mpsc fake device |
+| eg-shell | Framer split edges; queue, timeout, resync, and log with an mpsc fake device |
 | eg-studio | framing round-trip; request-id matching |
-| eg-device | feature parse/diff against fixtures |
-| eg-transport, eg-app | manual on hardware |
+| eg-device | parse/diff against fixtures recorded over BLE |
+| eg-app | pure helpers only; the UI is tested by hand on hardware |
+| eg-transport | by hand on hardware |
 
 ## Not doing
 
 - No Channel trait: `Link` is just channels.
 - No wrappers around Studio prost types.
 - No protocol strings in `eg-app`.
-
-## Open questions
-
-1. USB: are shell and Studio on separate CDC ports, and how to tell them apart (interface number / description)?
-2. BLE: do shell and Studio characteristics work concurrently on one connection?
-3. Does `bluest` on Windows/macOS list a connected device that is not advertising the shell UUID? Fallback: `connected_devices_with_services`, or ask the user to trigger `&zbs_adv`.
-4. Exact output of `p2sm status`, `p2sm sens pointer get`; is `p2sm … set` persisted across reboot?
-5. Dioxus version: pin latest stable (0.8 is alpha as of 2026-11).
