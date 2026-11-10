@@ -19,6 +19,8 @@ log = "0.4"
 prost = "0.14"
 prost-build = "0.14"
 protox = "0.10"
+# Same version and features as dioxus-desktop, which already builds it.
+rfd = { version = "0.17", default-features = false, features = ["xdg-portal"] }
 thiserror = "2"
 env_logger = "0.11"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }

@@ -1371,6 +1371,7 @@ dependencies = [
  "eg-device",
  "eg-transport",
  "env_logger",
+ "rfd",
  "tokio",
 ]
 

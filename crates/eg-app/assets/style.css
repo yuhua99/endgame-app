@@ -124,6 +124,23 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .mods { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 12px; }
 .mods label { display: flex; align-items: center; gap: 4px; }
 
+/* Logs: the list takes the height left in the tab. A reversed column keeps it scrolled to the
+   newest line; the auto margin puts a short list at the top. */
+.pane > .log {
+  flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column-reverse;
+  font-family: ui-monospace, Consolas, monospace; font-size: 13px;
+}
+.log > div { margin-bottom: auto; }
+.line { display: flex; gap: 10px; padding: 1px 0; }
+.line .time, .line .mark { color: var(--muted); flex-shrink: 0; }
+.line .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.line.sent .text { color: var(--accent); }
+.line.failed .text { color: var(--error); }
+.actions .command {
+  flex: 1; min-width: 0; background: var(--bg); color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 8px; font: inherit;
+}
+
 /* Last item of a tab: pushed to the bottom when the content is short, stuck there while it scrolls. */
 .actions {
   position: sticky; bottom: 0; margin: auto -20px 0; display: flex; justify-content: flex-end; align-items: center;

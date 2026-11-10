@@ -13,4 +13,5 @@ dioxus.workspace = true
 eg-device.workspace = true
 eg-transport.workspace = true
 env_logger.workspace = true
+rfd.workspace = true
 tokio.workspace = true

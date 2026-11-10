@@ -6,6 +6,7 @@ use eg_device::Session;
 
 use crate::advanced::AdvancedTab;
 use crate::keymap::KeymapTab;
+use crate::logs::{self, LogsTab};
 use crate::profiles::ProfilesTab;
 use crate::sensor::SensorTab;
 
@@ -19,10 +20,11 @@ enum Tab {
     Keymap,
     Profiles,
     Lighting,
+    Logs,
 }
 
 impl Tab {
-    const ALL: [Tab; 5] = [Tab::Sensor, Tab::Advanced, Tab::Keymap, Tab::Profiles, Tab::Lighting];
+    const ALL: [Tab; 6] = [Tab::Sensor, Tab::Advanced, Tab::Keymap, Tab::Profiles, Tab::Lighting, Tab::Logs];
 
     fn title(self) -> &'static str {
         match self {
@@ -31,6 +33,7 @@ impl Tab {
             Tab::Keymap => "Keymap",
             Tab::Profiles => "Profiles",
             Tab::Lighting => "Lighting",
+            Tab::Logs => "Logs",
         }
     }
 }
@@ -45,6 +48,8 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
     let mut status = use_signal(board::Status::default);
     // Bumped by the Profiles tab when it replaces the keymap, so the Keymap tab reads it again.
     let keymap_changed = use_signal(|| 0u32);
+    // Collected here rather than in the Logs tab, which is mounted only when first opened.
+    let log = logs::use_log(session);
     use_hook(move || {
         spawn(async move {
             loop {
@@ -101,6 +106,7 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
                                 Tab::Keymap => rsx! { KeymapTab { session, reload: keymap_changed } },
                                 Tab::Profiles => rsx! { ProfilesTab { session, visible: tab() == t, keymap_changed } },
                                 Tab::Lighting => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },
+                                Tab::Logs => rsx! { LogsTab { session, log } },
                             }
                         }
                     }
