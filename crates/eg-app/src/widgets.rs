@@ -79,6 +79,20 @@ pub fn Number(
     }
 }
 
+/// The one place for a tab's error message and action buttons: a bar at the bottom of the tab.
+/// Render it as the tab's last element.
+#[component]
+pub fn ActionBar(error: Option<String>, children: Element) -> Element {
+    rsx! {
+        footer { class: "actions",
+            if let Some(e) = error.as_ref() {
+                span { class: "error", "{e}" }
+            }
+            {children}
+        }
+    }
+}
+
 #[component]
 pub fn Actions(
     error: Option<String>,
@@ -89,10 +103,7 @@ pub fn Actions(
     on_apply: EventHandler,
 ) -> Element {
     rsx! {
-        footer { class: "actions",
-            if let Some(e) = error.as_ref() {
-                span { class: "error", "{e}" }
-            }
+        ActionBar { error,
             button { class: "ghost", disabled: busy || !dirty, onclick: move |_| on_revert.call(()), "Revert" }
             button { class: "ghost", disabled: busy, onclick: move |_| on_reload.call(()), "Reload" }
             button { disabled: busy || !dirty, onclick: move |_| on_apply.call(()),

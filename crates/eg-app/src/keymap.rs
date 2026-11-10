@@ -6,6 +6,7 @@ use eg_device::Session;
 
 use crate::endgame::{self, EndgameLayout};
 use crate::hid;
+use crate::widgets::ActionBar;
 
 /// Pixels per key unit; layout values are in 1/100 key units.
 const UNIT: f64 = 48.0;
@@ -172,14 +173,6 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
                     if l.name.is_empty() { "{i}" } else { "{l.name}" }
                 }
             }
-            span { class: "spacer" }
-            button {
-                class: "ghost",
-                disabled: busy_now || !unsaved(),
-                onclick: move |_| change(ChangeOp::Discard),
-                "Discard"
-            }
-            button { disabled: busy_now || !unsaved(), onclick: move |_| change(ChangeOp::Save), "Save" }
         }
         // The Endgame drawing stays on the left with the editor beside it; other layouts stack.
         div { class: if is_endgame { "keymap-body split" } else { "keymap-body" },
@@ -203,9 +196,6 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
                 }
             }
             div {
-                if let Some(e) = error() {
-                    p { class: "error", "{e}" }
-                }
                 if let Some((pos, binding)) = editing {
                     BindingEditor {
                         key: "{layer.id}-{pos}",
@@ -221,6 +211,17 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
                 } else {
                     p { class: "placeholder", "Select a key to change its binding." }
                 }
+            }
+        }
+        ActionBar { error: error(),
+            button {
+                class: "ghost",
+                disabled: busy_now || !unsaved(),
+                onclick: move |_| change(ChangeOp::Discard),
+                "Discard"
+            }
+            button { disabled: busy_now || !unsaved(), onclick: move |_| change(ChangeOp::Save),
+                if busy_now { "Working…" } else { "Save" }
             }
         }
     }
