@@ -1,0 +1,331 @@
+state: off
+[error 0]
+  label:      Sensor error (left)
+  anim:       blink
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=750ms off=750ms
+  flash-dur:  0ms
+  flash-ease-in:  0ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   [250]
+  breathe:    0ms
+  persistent: no
+[error 1]
+  label:      Sensor error (right)
+  anim:       blink
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=750ms off=750ms
+  flash-dur:  0ms
+  flash-ease-in:  0ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   [250]
+  breathe:    0ms
+  persistent: no
+[usb-conn]
+  label:      USB connected
+  anim:       flash
+  colors:     1
+    [0] r=0   g=255 b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  0ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[usb-disconn]
+  label:      USB disconnected
+  anim:       flash
+  colors:     1
+    [0] r=255 g=128 b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  150ms fn=linear
+  flash-ease-out: 150ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[ble-profile 1]
+  label:      Bluetooth device
+  anim:       flash
+  colors:     1
+    [0] r=0   g=64  b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[ble-profile 2]
+  label:      Bluetooth device
+  anim:       flash
+  colors:     1
+    [0] r=0   g=64  b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[ble-profile 3]
+  label:      Bluetooth device
+  anim:       flash
+  colors:     1
+    [0] r=0   g=64  b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[ble-profile 4]
+  label:      Bluetooth device
+  anim:       flash
+  colors:     1
+    [0] r=0   g=64  b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[ble-profile 5]
+  label:      Bluetooth device
+  anim:       flash
+  colors:     1
+    [0] r=0   g=64  b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[no-endpoint]
+  label:      No endpoint available
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  350ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [50]
+  breathe:    0ms
+  persistent: no
+[studio-unlock]
+  label:      Studio unlocked
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  1000ms
+  flash-ease-in:  150ms fn=linear
+  flash-ease-out: 150ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[batt-warn 1]
+  label:      Battery warning
+  anim:       flash
+  colors:     1
+    [0] r=255 g=224 b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  1000ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [50]
+  breathe:    0ms
+  persistent: no
+[batt-warn 2]
+  label:      Battery warning
+  anim:       flash
+  colors:     1
+    [0] r=255 g=128 b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  1500ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [50]
+  breathe:    0ms
+  persistent: no
+[batt-warn 3]
+  label:      Battery warning
+  anim:       flash
+  colors:     1
+    [0] r=255 g=64  b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  2000ms
+  flash-ease-in:  100ms fn=linear
+  flash-ease-out: 100ms fn=linear
+  feedback:   [50]
+  breathe:    0ms
+  persistent: no
+[batt-crit 1]
+  label:      Battery critical
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  1000ms
+  flash-ease-in:  50ms fn=linear
+  flash-ease-out: 50ms fn=linear
+  feedback:   [125]
+  breathe:    0ms
+  persistent: no
+[batt-crit 2]
+  label:      Battery critical
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  1500ms
+  flash-ease-in:  50ms fn=linear
+  flash-ease-out: 50ms fn=linear
+  feedback:   [125]
+  breathe:    0ms
+  persistent: no
+[batt-crit 3]
+  label:      Battery critical
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  3000ms
+  flash-ease-in:  50ms fn=linear
+  flash-ease-out: 50ms fn=linear
+  feedback:   [125]
+  breathe:    0ms
+  persistent: no
+[layer 0]
+  anim:       solid
+  colors:     1
+    [0] r=0   g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  3000ms
+  flash-ease-in:  50ms fn=linear
+  flash-ease-out: 50ms fn=linear
+  feedback:   (none)
+  breathe:    0ms
+  persistent: yes
+[layer 1]
+  anim:       solid
+  colors:     1
+    [0] r=0   g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  3000ms
+  flash-ease-in:  50ms fn=linear
+  flash-ease-out: 50ms fn=linear
+  feedback:   (none)
+  breathe:    0ms
+  persistent: yes
+[layer 2]
+  anim:       flash
+  colors:     1
+    [0] r=128 g=0   b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  30000ms
+  flash-ease-in:  250ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   [40]
+  breathe:    0ms
+  persistent: yes
+[layer 3]
+  anim:       solid
+  colors:     1
+    [0] r=0   g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  30000ms
+  flash-ease-in:  250ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   (none)
+  breathe:    0ms
+  persistent: yes
+[layer 4]
+  anim:       solid
+  colors:     1
+    [0] r=255 g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  30000ms
+  flash-ease-in:  250ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   (none)
+  breathe:    0ms
+  persistent: yes
+[layer 5]
+  anim:       solid
+  colors:     1
+    [0] r=0   g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  30000ms
+  flash-ease-in:  250ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   (none)
+  breathe:    0ms
+  persistent: yes
+[key-auto-held]
+  label:      Key auto held
+  anim:       flash
+  colors:     1
+    [0] r=0   g=0   b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  300ms
+  flash-ease-in:  0ms fn=linear
+  flash-ease-out: 0ms fn=linear
+  feedback:   [40]
+  breathe:    0ms
+  persistent: no
+[esb-switched]
+  label:      Switched to dongle
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=128
+  blink:      on=0ms off=0ms
+  flash-dur:  450ms
+  flash-ease-in:  125ms fn=linear
+  flash-ease-out: 125ms fn=linear
+  feedback:   [80]
+  breathe:    0ms
+  persistent: no
+[keymap-slot-switched]
+  label:      Keymap slot switched
+  anim:       flash
+  colors:     1
+    [0] r=255 g=0   b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  250ms
+  flash-ease-in:  75ms fn=linear
+  flash-ease-out: 75ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[mui-adv]
+  label:      Advertising MUI
+  anim:       flash
+  colors:     1
+    [0] r=255 g=160 b=0  
+  blink:      on=0ms off=0ms
+  flash-dur:  1000ms
+  flash-ease-in:  150ms fn=linear
+  flash-ease-out: 150ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no
+[bistable-toggled]
+  label:      OS type toggled
+  anim:       flash
+  colors:     1
+    [0] r=0   g=255 b=255
+  blink:      on=0ms off=0ms
+  flash-dur:  250ms
+  flash-ease-in:  75ms fn=linear
+  flash-ease-out: 75ms fn=linear
+  feedback:   [65]
+  breathe:    0ms
+  persistent: no

@@ -3,6 +3,7 @@
 
 pub mod board;
 pub mod keymap;
+pub mod lighting;
 pub mod profiles;
 pub mod rtcfg;
 pub mod sensor;
