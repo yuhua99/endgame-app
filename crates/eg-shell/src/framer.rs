@@ -26,6 +26,29 @@ impl Framer {
     }
 }
 
+/// Removes Zephyr log lines (e.g. `[39874492] <inf> zmk_studio: ...`), which the firmware
+/// prints into the shell at any time. Returns the remaining text and whether any were removed.
+pub(crate) fn strip_logs(text: &str) -> (String, bool) {
+    let mut had_logs = false;
+    let kept: Vec<&str> = text
+        .lines()
+        .filter(|line| {
+            let log = is_log_line(line);
+            had_logs |= log;
+            !log
+        })
+        .collect();
+    (kept.join("\n").trim_matches('\n').to_string(), had_logs)
+}
+
+fn is_log_line(line: &str) -> bool {
+    let Some((stamp, rest)) = line.trim_start().strip_prefix('[').and_then(|l| l.split_once("] <")) else {
+        return false;
+    };
+    stamp.chars().all(|c| c.is_ascii_digit() || ":.,".contains(c))
+        && ["dbg> ", "inf> ", "wrn> ", "err> "].iter().any(|level| rest.starts_with(level))
+}
+
 /// Removes CSI sequences (`ESC [ params final`), e.g. the prompt colors.
 fn strip_ansi(raw: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(raw.len());
@@ -104,6 +127,16 @@ mod tests {
     fn plain_prompt_text_in_body_does_not_split() {
         let mut f = framer(&[&format!("\r\nsee endgame$ docs\r\n{P}")]);
         assert_eq!(f.pop().as_deref(), Some("see endgame$ docs"));
+    }
+
+    #[test]
+    fn strips_observed_log_lines() {
+        let out = "[39874492] <inf> zmk_studio: RPC Notifications enabled\n\n280 (28%)";
+        assert_eq!(strip_logs(out), ("280 (28%)".to_string(), true));
+        let only = "[41468053] <wrn> zmk_studio: Skipping on, no room to write escape and real byte";
+        assert_eq!(strip_logs(only), (String::new(), true));
+        assert_eq!(strip_logs("[00:00:01.234,567] <err> x: y\n  a  1"), ("  a  1".to_string(), true));
+        assert_eq!(strip_logs("  [1, 50] <inf> not a log"), ("  [1, 50] <inf> not a log".to_string(), false));
     }
 
     #[test]

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use tokio::sync::{mpsc, Mutex};
 
-use crate::framer::Framer;
+use crate::framer::{strip_logs, Framer};
 use crate::{Error, Result};
 
 /// A command fails with `Error::Timeout` when its prompt has not arrived within this time,
@@ -24,7 +24,7 @@ impl Shell {
         Ok(Shell { inner: Arc::new(Mutex::new(inner)) })
     }
 
-    /// Runs `cmd` and returns its output without prompt, ANSI codes, or CRs.
+    /// Runs `cmd` and returns its output without prompt, ANSI codes, CRs, or firmware log lines.
     /// Fails with `Unsupported` if the firmware does not know the command.
     pub async fn exec(&self, cmd: &str) -> Result<String> {
         self.inner.lock().await.exec(cmd).await
@@ -77,6 +77,12 @@ impl Inner {
         let deadline = tokio::time::Instant::now() + TIMEOUT;
         loop {
             if let Some(out) = self.framer.pop() {
+                let (out, had_logs) = strip_logs(&out);
+                // A log printed while idle or mid-command is followed by a redrawn prompt;
+                // that log-only chunk is not the response.
+                if had_logs && out.is_empty() {
+                    continue;
+                }
                 return Ok(out);
             }
             match tokio::time::timeout_at(deadline, self.rx.recv()).await {
@@ -116,6 +122,10 @@ mod tests {
         match cmd {
             "shell echo off" => drop(out.send(reply(""))),
             "board version" => drop(out.send(reply("Firmware: v1.6.2"))),
+            "logged" => {
+                drop(out.send(reply("[41468053] <wrn> zmk_studio: Skipping on")));
+                drop(out.send(reply("[39874492] <inf> zmk_studio: RPC Notifications enabled\r\n\r\n280 (28%)")));
+            }
             "chatty" => {
                 let out = out.clone();
                 tokio::spawn(async move {
@@ -142,6 +152,14 @@ mod tests {
     async fn exec_returns_clean_output_after_greeting() {
         let (tx, rx) = device(endgame);
         let shell = Shell::open(tx, rx).await.unwrap();
+        assert_eq!(shell.exec("board version").await.unwrap(), "Firmware: v1.6.2");
+    }
+
+    #[tokio::test]
+    async fn log_lines_and_log_only_prompts_are_skipped() {
+        let (tx, rx) = device(endgame);
+        let shell = Shell::open(tx, rx).await.unwrap();
+        assert_eq!(shell.exec("logged").await.unwrap(), "280 (28%)");
         assert_eq!(shell.exec("board version").await.unwrap(), "Firmware: v1.6.2");
     }
 
