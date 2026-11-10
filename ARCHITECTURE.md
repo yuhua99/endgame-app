@@ -125,7 +125,7 @@ The connection closes when the last clone drops.
 
 | Module | Covers | Over |
 |---|---|---|
-| `sensor` | sensitivity, twist, SMA, sync window, rotation, frame sync; surface quality | shell: `p2sm`, `rrl`, `plane`, `rtcfg`, `sensor surface` |
+| `sensor` | sensitivity, twist, SMA, sync window, rotation, frame sync, sensitivity behaviors; surface quality | shell: `p2sm`, `rrl`, `plane`, `rtcfg`, `sensor surface` |
 | `rtcfg` | runtime parameters as a generic list | shell: `rtcfg` |
 | `profiles` | keymap slots, output assignments, autoswitch, OS mode | shell: `keymap`, `bistable`, `rtcfg`; asks Studio about unsaved edits |
 | `board` | battery, active output | shell: `board status`, `board output` |
@@ -151,6 +151,7 @@ pub async fn apply(shell: &Shell, saved: &SensorSettings, new: &SensorSettings) 
 - A tab is mounted on first visit and then only hidden, so switching tabs never cancels a running operation.
 - Sensor and Advanced keep an `Editable<T>`: `saved` mirrors the device, `form` holds the edits, Apply sends the difference. They read the device again when reopened without edits.
 - Polling lives here: surface quality every 100 ms while the Sensor tab is visible, battery and active output every 5 s. Both use `exec_bg`.
+- The 5 s poll is also the heartbeat: when it fails (link closed, or no answer within the shell timeout), the app drops the session and shows the connect page with the reason.
 - The device page subscribes to the shell log when it mounts; the Logs tab shows it and sends typed commands.
 
 ### Data flow (Apply)
