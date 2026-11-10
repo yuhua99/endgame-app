@@ -1,6 +1,6 @@
 //! Sensor settings: pointer and twist-scroll sensitivity, twist scroll, SMA smoothing,
-//! report sync window, frame sync, and pointer plane rotation. Also the live surface
-//! quality readout.
+//! report sync window, frame sync, pointer plane rotation, and the behaviors that change
+//! sensitivity from a key. Also the live surface quality readout.
 //!
 //! Commands and value formats follow Marshmellow UI. `p2sm status` and
 //! `p2sm sens pointer get` outputs are recorded from firmware v1.6.2 (tests/fixtures);
@@ -20,6 +20,13 @@ pub const SMA_WINDOW_RANGE: RangeInclusive<u32> = 2..=12;
 pub const SYNC_MS_RANGE: RangeInclusive<u32> = 0..=10;
 /// Not taken from Marshmellow (it uses a free text field).
 pub const PLANE_DEG_RANGE: RangeInclusive<i32> = -180..=180;
+/// For `Behavior::step`, `min_step`, and `max_step`.
+pub const STEP_RANGE: RangeInclusive<u32> = 1..=1000;
+pub const MULTIPLIER_RANGE: RangeInclusive<u32> = 1..=5;
+/// Not taken from Marshmellow: the firmware stores the duration in 16 bits and keeps at most
+/// this many pattern values (its build default).
+pub const FEEDBACK_MS_MAX: u32 = u16::MAX as u32;
+pub const PATTERN_MAX: usize = 8;
 const FRAME_SYNC: &str = "p2sm/frame_sync";
 
 #[derive(Debug, Clone, PartialEq)]
@@ -39,6 +46,32 @@ pub struct SensorSettings {
     pub plane_deg: Option<i32>,
     /// Frame sync of the two sensors (an `rtcfg` parameter); `None` if the firmware lacks it.
     pub frame_sync: Option<bool>,
+    pub behaviors: Vec<Behavior>,
+}
+
+/// A behavior that raises or lowers a sensitivity each time its key is pressed.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Behavior {
+    pub id: u32,
+    pub name: String,
+    /// Changes the twist scroll sensitivity instead of the pointer sensitivity.
+    pub scroll: bool,
+    /// Change per press in 0.1 % units.
+    pub step: u32,
+    /// Lowest and highest sensitivity, in steps. The firmware needs `min_step < max_step`.
+    pub min_step: u32,
+    pub max_step: u32,
+    /// Highest sensitivity as a factor, whatever `max_step` allows. Used for scroll only.
+    pub max_multiplier: u32,
+    /// A press past one end continues from the other end.
+    pub wrap: bool,
+    pub feedback_on_limit: bool,
+    /// Vibration per press in ms; 0 turns all vibration of this behavior off.
+    pub feedback_duration: u32,
+    /// Vibration played instead when the sensitivity wraps or stops at an end: ms on, off,
+    /// on, ... The firmware reports it only with `wrap` or `feedback_on_limit`, so it is
+    /// empty otherwise, and applying an edit then clears the pattern on the device.
+    pub pattern: Vec<i32>,
 }
 
 pub async fn read(shell: &Shell) -> Result<SensorSettings> {
@@ -97,6 +130,45 @@ pub fn parse_surface(out: &str) -> Result<Vec<Surface>> {
     Ok(readings)
 }
 
+/// The "[ID 0] Name [scroll]" blocks of `p2sm status`; `None` if one is not understood.
+fn parse_behaviors(status: &str) -> Option<Vec<Behavior>> {
+    let blocks = status.split("\n[ID ").skip(1);
+    blocks
+        .map(|block| {
+            let (id, rest) = block.split_once(']')?;
+            let header = rest.lines().next()?.trim();
+            let (name, scroll) = match header.strip_suffix("[scroll]") {
+                Some(name) => (name.trim_end(), true),
+                None => (header, false),
+            };
+            let number = |key: &str| fields(block, key).next()?.parse().ok();
+            let flag = |key: &str| fields(block, key).next()?.parse().ok();
+            // "min_step: 2, max_step: 12"
+            let (min_step, max_step) = fields(block, "min_step:").next()?.split_once(", max_step:")?;
+            let pattern = match fields(block, "feedback_wrap_pattern:").next() {
+                Some(list) => {
+                    let values = list.trim_matches(['[', ']']).split(',');
+                    values.map(|v| v.trim().parse().ok()).collect::<Option<_>>()?
+                }
+                None => Vec::new(),
+            };
+            Some(Behavior {
+                id: id.trim().parse().ok()?,
+                name: name.to_string(),
+                scroll,
+                step: number("step:")?,
+                min_step: min_step.trim().parse().ok()?,
+                max_step: max_step.trim().parse().ok()?,
+                max_multiplier: number("max_multiplier:")?,
+                wrap: flag("wrap:")?,
+                feedback_on_limit: flag("feedback_on_limit:")?,
+                feedback_duration: number("feedback_duration:")?,
+                pattern,
+            })
+        })
+        .collect()
+}
+
 /// Everything but `frame_sync`, which `read` gets from `rtcfg`.
 pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Result<SensorSettings> {
     let bad = |cmd: &str, output: &str| Error::Parse { cmd: cmd.into(), output: output.into() };
@@ -128,6 +200,7 @@ pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Res
             .ok_or_else(|| bad("rrl get", rrl))?,
         plane_deg: plane.and_then(parse_angle),
         frame_sync: None,
+        behaviors: parse_behaviors(status).ok_or_else(|| bad("p2sm status", status))?,
     })
 }
 
@@ -162,6 +235,24 @@ pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String> {
     }
     if let Some(on) = new.frame_sync.filter(|_| new.frame_sync != old.frame_sync) {
         cmds.push(format!("rtcfg set {FRAME_SYNC} {}", on as u8));
+    }
+    for b in &new.behaviors {
+        if old.behaviors.iter().find(|o| o.id == b.id) != Some(b) {
+            // id, step, min, max, multiplier, wrap, feedback on limit, duration, pattern length, pattern.
+            let pattern: String = b.pattern.iter().map(|v| format!(" {v}")).collect();
+            cmds.push(format!(
+                "p2sm behavior set {} {} {} {} {} {} {} {} {}{pattern}",
+                b.id,
+                b.step,
+                b.min_step,
+                b.max_step,
+                b.max_multiplier,
+                b.wrap as u8,
+                b.feedback_on_limit as u8,
+                b.feedback_duration,
+                b.pattern.len()
+            ));
+        }
     }
     cmds
 }
@@ -200,8 +291,9 @@ mod tests {
 
     #[test]
     fn parses_recorded_output() {
+        let sample = sample();
         assert_eq!(
-            sample(),
+            SensorSettings { behaviors: Vec::new(), ..sample.clone() },
             SensorSettings {
                 pointer: 280,
                 twist_on: true,
@@ -212,7 +304,67 @@ mod tests {
                 sync_ms: 4,
                 plane_deg: Some(-15),
                 frame_sync: None,
+                behaviors: Vec::new(),
             }
+        );
+        assert_eq!(sample.behaviors.len(), 4);
+        assert_eq!(
+            sample.behaviors[0],
+            Behavior {
+                id: 0,
+                name: "Scroll sensitivity (no wrapping)".into(),
+                scroll: true,
+                step: 10,
+                min_step: 2,
+                max_step: 12,
+                max_multiplier: 1,
+                wrap: false,
+                feedback_on_limit: false,
+                feedback_duration: 65,
+                pattern: Vec::new(),
+            }
+        );
+        assert_eq!(
+            sample.behaviors[3],
+            Behavior {
+                id: 3,
+                name: "Pointer sensitivity".into(),
+                scroll: false,
+                step: 125,
+                min_step: 1,
+                max_step: 1000,
+                max_multiplier: 1,
+                wrap: true,
+                feedback_on_limit: false,
+                feedback_duration: 65,
+                pattern: vec![0, 10, 65, 25, 65, 25, 65],
+            }
+        );
+    }
+
+    #[test]
+    fn status_without_behaviors_has_none() {
+        let status = STATUS.split("\n[ID ").next().unwrap();
+        assert!(parse(status, POINTER, "Sync window: 4", None).unwrap().behaviors.is_empty());
+    }
+
+    #[test]
+    fn malformed_behavior_is_a_parse_error() {
+        let status = STATUS.replace("wrap: true", "wrap: maybe");
+        let err = parse(&status, POINTER, "Sync window: 4", None).unwrap_err();
+        assert!(matches!(err, Error::Parse { cmd, .. } if cmd == "p2sm status"));
+    }
+
+    #[test]
+    fn diff_sets_only_edited_behaviors() {
+        let old = sample();
+        let mut new = old.clone();
+        new.behaviors[1].step = 100;
+        new.behaviors[2].wrap = false;
+        new.behaviors[2].pattern = vec![0, 10, 65];
+        assert_eq!(
+            diff(&old, &new),
+            ["p2sm behavior set 1 100 1 8 1 0 0 65 0", "p2sm behavior set 2 250 1 1000 1 0 0 65 3 0 10 65"]
         );
     }
 

@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use dioxus::prelude::*;
-use eg_device::sensor::{self, SensorSettings, Surface};
+use eg_device::sensor::{self, Behavior, SensorSettings, Surface};
 use eg_device::Session;
 
-use crate::editable::use_editable;
-use crate::widgets::{Actions, Slider, Toggle};
+use crate::editable::{use_editable, Editable};
+use crate::widgets::{Actions, Number, Slider, Toggle};
 
 /// Pause between surface quality readings.
 const SURFACE_POLL: Duration = Duration::from_millis(100);
@@ -161,6 +161,14 @@ pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) ->
                 }
             }
         }
+        if !f.behaviors.is_empty() {
+            p { class: "placeholder",
+                "The behaviors below change a sensitivity when their key is pressed or their encoder is turned. Assign them in the Keymap tab."
+            }
+        }
+        for (i, b) in f.behaviors.iter().enumerate() {
+            {behavior_card(ed, i, b, busy)}
+        }
         Actions {
             error: ed.error.cloned(),
             busy,
@@ -174,6 +182,107 @@ pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) ->
             },
         }
     }
+}
+
+/// Settings of the behavior at index `i`.
+fn behavior_card(ed: Editable<SensorSettings>, i: usize, b: &Behavior, busy: bool) -> Element {
+    let (step_min, step_max) = (*sensor::STEP_RANGE.start() as i32, *sensor::STEP_RANGE.end() as i32);
+    // As the firmware works it out: the highest sensitivity stops at the multiplier, and at
+    // 100 % for the pointer; the lowest has no such cap.
+    let cap = if b.scroll { b.max_multiplier * 1000 } else { 1000.min(b.max_multiplier * 1000) };
+    let pct = |units: u32| format!("{:.1}%", units as f64 / 10.0);
+    let above_lowest = b.min_step as i32 + 1;
+    let pattern = b.pattern.iter().map(i32::to_string).collect::<Vec<_>>().join(", ");
+    let pattern_max = sensor::PATTERN_MAX;
+    rsx! {
+        section { class: "card",
+            h2 { "{b.name}" }
+            Number {
+                label: "Step (0.1 %)",
+                disabled: busy,
+                value: b.step as i32,
+                min: step_min,
+                max: step_max,
+                hint: pct(b.step),
+                on_change: move |v: i32| ed.edit(|s| s.behaviors[i].step = v as u32),
+            }
+            // The firmware needs lowest < highest; the bounds below keep it so.
+            Number {
+                label: "Lowest (steps)",
+                disabled: busy,
+                value: b.min_step as i32,
+                min: step_min,
+                max: (b.max_step as i32 - 1).max(step_min),
+                hint: pct(b.min_step * b.step),
+                on_change: move |v: i32| ed.edit(|s| s.behaviors[i].min_step = v as u32),
+            }
+            Number {
+                label: "Highest (steps)",
+                disabled: busy,
+                value: b.max_step as i32,
+                min: above_lowest,
+                max: step_max.max(above_lowest),
+                hint: pct((b.max_step * b.step).min(cap)),
+                on_change: move |v: i32| ed.edit(|s| s.behaviors[i].max_step = v as u32),
+            }
+            if b.scroll {
+                Slider {
+                    label: "Highest multiplier",
+                    disabled: busy,
+                    value: b.max_multiplier as f64,
+                    min: *sensor::MULTIPLIER_RANGE.start() as f64,
+                    max: *sensor::MULTIPLIER_RANGE.end() as f64,
+                    step: 1.0,
+                    unit: "×",
+                    on_change: move |v: f64| ed.edit(|s| s.behaviors[i].max_multiplier = v.round() as u32),
+                }
+            }
+            Number {
+                label: "Vibration",
+                disabled: busy,
+                value: b.feedback_duration as i32,
+                min: 0,
+                max: sensor::FEEDBACK_MS_MAX as i32,
+                hint: "ms",
+                on_change: move |v: i32| ed.edit(|s| s.behaviors[i].feedback_duration = v as u32),
+            }
+            Toggle {
+                label: "Wrap around",
+                disabled: busy,
+                checked: b.wrap,
+                on_change: move |v: bool| ed.edit(|s| s.behaviors[i].wrap = v),
+            }
+            if !b.wrap {
+                Toggle {
+                    label: "Feedback on limit",
+                    disabled: busy,
+                    checked: b.feedback_on_limit,
+                    on_change: move |v: bool| ed.edit(|s| s.behaviors[i].feedback_on_limit = v),
+                }
+            }
+            if b.wrap || b.feedback_on_limit {
+                label { class: "row",
+                    span { class: "label", "Pattern" }
+                    input {
+                        r#type: "text",
+                        disabled: busy,
+                        title: "Vibration and pause lengths in turn, starting with a vibration; at most {pattern_max} numbers",
+                        value: "{pattern}",
+                        onchange: move |e| {
+                            let values = parse_pattern(&e.value());
+                            ed.edit(|s| s.behaviors[i].pattern = values);
+                        },
+                    }
+                    span { class: "value muted", "ms" }
+                }
+            }
+        }
+    }
+}
+
+/// The numbers in `text`, whatever separates them, up to the firmware's limit.
+fn parse_pattern(text: &str) -> Vec<i32> {
+    text.split(|c: char| !c.is_ascii_digit()).filter_map(|v| v.parse().ok()).take(sensor::PATTERN_MAX).collect()
 }
 
 /// Live surface quality of each sensor, read repeatedly while the tab is visible.

@@ -57,10 +57,11 @@ button.ghost { background: transparent; color: var(--text); border: 1px solid va
 .pane > * { flex-shrink: 0; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
 .row { display: grid; grid-template-columns: 180px 1fr 90px; align-items: center; gap: 12px; padding: 6px 0; }
-.row input[type=number] {
+.row input[type=number], .row input[type=text] {
   width: 140px; background: var(--bg); color: var(--text); border: 1px solid var(--line);
   border-radius: 6px; padding: 5px 8px; font: inherit;
 }
+.row input[type=text] { width: 100%; box-sizing: border-box; }
 .param { display: flex; align-items: center; gap: 8px; }
 .param .row { flex: 1; }
 .reset-slot { width: 64px; display: flex; justify-content: flex-end; }
