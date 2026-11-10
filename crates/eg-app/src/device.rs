@@ -6,6 +6,7 @@ use eg_device::Session;
 
 use crate::advanced::AdvancedTab;
 use crate::keymap::KeymapTab;
+use crate::lighting::LightingTab;
 use crate::logs::{self, LogsTab};
 use crate::profiles::ProfilesTab;
 use crate::sensor::SensorTab;
@@ -116,7 +117,7 @@ pub fn DevicePage(session: Signal<Option<Session>>, connect_status: Signal<Strin
                                 Tab::Advanced => rsx! { AdvancedTab { session, visible: tab() == t } },
                                 Tab::Keymap => rsx! { KeymapTab { session, reload: keymap_changed } },
                                 Tab::Profiles => rsx! { ProfilesTab { session, visible: tab() == t, keymap_changed } },
-                                Tab::Lighting => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },
+                                Tab::Lighting => rsx! { LightingTab { session, visible: tab() == t } },
                                 Tab::Logs => rsx! { LogsTab { session, log } },
                             }
                         }

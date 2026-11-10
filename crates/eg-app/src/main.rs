@@ -9,6 +9,7 @@ mod editable;
 mod endgame;
 mod hid;
 mod keymap;
+mod lighting;
 mod logs;
 mod profiles;
 mod sensor;
