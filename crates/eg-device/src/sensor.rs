@@ -50,10 +50,15 @@ pub async fn read(shell: &Shell) -> Result<SensorSettings> {
     Ok(SensorSettings { frame_sync, ..parse(&status, &pointer, &rrl, plane.as_deref())? })
 }
 
-/// Sends only the changed settings, then reads back what the device actually has.
-pub async fn apply(shell: &Shell, new: &SensorSettings) -> Result<SensorSettings> {
-    let current = read(shell).await?;
-    for cmd in diff(&current, new) {
+/// Sends the settings that differ between `saved` (what the edits started from) and `new`,
+/// then reads back what the device actually has. Settings changed elsewhere meanwhile are kept.
+pub async fn apply(shell: &Shell, saved: &SensorSettings, new: &SensorSettings) -> Result<SensorSettings> {
+    let mut from = saved.clone();
+    if new.twist_reversed != saved.twist_reversed {
+        // `p2sm twist reverse` toggles, so it has to start from the device's current state.
+        from.twist_reversed = read(shell).await?.twist_reversed;
+    }
+    for cmd in diff(&from, new) {
         exec_checked(shell, &cmd).await?;
     }
     read(shell).await
@@ -126,8 +131,8 @@ pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Res
     })
 }
 
-/// Commands that turn `old` into `new`. `p2sm twist reverse` toggles, so `old` must be
-/// the device's current state.
+/// Commands that turn `old` into `new`. `p2sm twist reverse` toggles, so
+/// `old.twist_reversed` must be the device's current state.
 pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String> {
     let on_off = |on: bool| if on { "on" } else { "off" };
     let mut cmds = Vec::new();

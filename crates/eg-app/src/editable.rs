@@ -35,6 +35,12 @@ impl<T: Clone + PartialEq + 'static> Editable<T> {
         *self.saved.read() != *self.form.read()
     }
 
+    /// Nothing is running and there are no edits to lose. Unlike `dirty`, this does not
+    /// subscribe the caller to changes.
+    pub fn idle(&self) -> bool {
+        !*self.busy.peek() && *self.saved.peek() == *self.form.peek()
+    }
+
     /// Runs a device operation that returns the device's fresh state.
     pub async fn run(mut self, op: impl Future<Output = eg_device::Result<T>>) {
         self.busy.set(true);

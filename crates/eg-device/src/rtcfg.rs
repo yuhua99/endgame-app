@@ -30,10 +30,10 @@ pub async fn get(shell: &Shell, key: &str) -> Result<Option<i32>> {
     Ok(exec_optional(shell, &format!("rtcfg get {key}")).await?.and_then(|out| parse_value(&out)))
 }
 
-/// Sets only the changed values, then reads back the device's list.
-pub async fn apply(shell: &Shell, new: &[Param]) -> Result<Vec<Param>> {
-    let current = list(shell).await?;
-    for cmd in diff(&current, new) {
+/// Sets the values that differ between `saved` (the list the edits started from) and
+/// `new`, then reads back the device's list. Values changed elsewhere meanwhile are kept.
+pub async fn apply(shell: &Shell, saved: &[Param], new: &[Param]) -> Result<Vec<Param>> {
+    for cmd in diff(saved, new) {
         exec_checked(shell, &cmd).await?;
     }
     list(shell).await

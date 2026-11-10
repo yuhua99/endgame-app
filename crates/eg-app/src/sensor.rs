@@ -45,12 +45,16 @@ pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) ->
         }
     };
     let apply = move || async move {
-        if let (Some(shell), Some(new)) = (shell(), ed.form.cloned()) {
-            ed.run(async move { sensor::apply(&shell, &new).await }).await;
+        if let (Some(shell), Some(saved), Some(new)) = (shell(), ed.saved.cloned(), ed.form.cloned()) {
+            ed.run(async move { sensor::apply(&shell, &saved, &new).await }).await;
         }
     };
-    use_hook(move || {
-        spawn(reload());
+    // Other tabs can change these values on the device, so read them again whenever this tab
+    // opens, unless there are edits to keep.
+    use_effect(move || {
+        if visible() && ed.idle() {
+            spawn(reload());
+        }
     });
 
     let Some(f) = ed.form.cloned() else {

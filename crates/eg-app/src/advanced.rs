@@ -7,7 +7,7 @@ use crate::widgets::{Actions, Number, Toggle};
 
 /// All `rtcfg` parameters, grouped by module prefix.
 #[component]
-pub fn AdvancedTab(session: Signal<Option<Session>>) -> Element {
+pub fn AdvancedTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) -> Element {
     let ed = use_editable::<Vec<Param>>();
     let shell = move || session.peek().as_ref().map(|s| s.shell().clone());
     let reload = move || async move {
@@ -16,8 +16,8 @@ pub fn AdvancedTab(session: Signal<Option<Session>>) -> Element {
         }
     };
     let apply = move || async move {
-        if let (Some(shell), Some(new)) = (shell(), ed.form.cloned()) {
-            ed.run(async move { rtcfg::apply(&shell, &new).await }).await;
+        if let (Some(shell), Some(saved), Some(new)) = (shell(), ed.saved.cloned(), ed.form.cloned()) {
+            ed.run(async move { rtcfg::apply(&shell, &saved, &new).await }).await;
         }
     };
     let reset = move |key: String| async move {
@@ -25,8 +25,12 @@ pub fn AdvancedTab(session: Signal<Option<Session>>) -> Element {
             ed.run(async move { rtcfg::reset(&shell, &key).await }).await;
         }
     };
-    use_hook(move || {
-        spawn(reload());
+    // Other tabs can change these values on the device, so read them again whenever this tab
+    // opens, unless there are edits to keep.
+    use_effect(move || {
+        if visible() && ed.idle() {
+            spawn(reload());
+        }
     });
 
     let Some(params) = ed.form.cloned() else {
