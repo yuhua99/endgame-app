@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::future::Future;
 use std::time::Duration;
 
 use bluest::{Adapter, Characteristic, ConnectionEvent, Device};
@@ -16,6 +17,7 @@ const STUDIO_CHRC: Uuid = uuid!("00000001-0196-6107-c967-c5cfb1c2482a");
 const CHUNK_MAX: usize = 96;
 const CHUNK_GAP: Duration = Duration::from_millis(20);
 const SCAN_TIME: Duration = Duration::from_secs(3);
+const STEP_TIME: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
 pub struct DeviceInfo {
@@ -24,17 +26,36 @@ pub struct DeviceInfo {
     device: Device,
 }
 
+/// Runs BLE work on a tokio worker thread. The UI thread is a COM single-threaded apartment
+/// (WebView2), where awaiting WinRT Bluetooth calls can hang.
+async fn off_ui_thread<T: Send + 'static>(work: impl Future<Output = Result<T>> + Send + 'static) -> Result<T> {
+    match tokio::spawn(work).await {
+        Ok(result) => result,
+        Err(e) => std::panic::resume_unwind(e.into_panic()),
+    }
+}
+
 /// Lists devices exposing the shell service: already-connected ones first, then advertising ones.
 pub async fn scan() -> Result<Vec<DeviceInfo>> {
-    let adapter = Adapter::default().await.ok_or(Error::NoAdapter)?;
-    adapter.wait_available().await?;
+    off_ui_thread(scan_devices()).await
+}
+
+/// Bounds a setup step and logs it, so a hang shows up as an error naming the step.
+async fn step<T>(what: &'static str, work: impl Future<Output = T>) -> Result<T> {
+    log::info!("scan: {what}…");
+    tokio::time::timeout(STEP_TIME, work).await.map_err(|_| Error::Timeout(what))
+}
+
+async fn scan_devices() -> Result<Vec<DeviceInfo>> {
+    let adapter = step("getting the Bluetooth adapter", Adapter::default()).await?.ok_or(Error::NoAdapter)?;
+    step("waiting for Bluetooth to be on", adapter.wait_available()).await??;
 
     let mut seen = HashSet::new();
     let mut found = Vec::new();
     // Windows matches connected devices against its cached service list, which may lack the
     // shell service, and ZMK does not advertise it. So ask each connected device directly
     // (uncached), as Web Bluetooth does.
-    let connected = adapter.connected_devices().await.unwrap_or_else(|e| {
+    let connected = step("listing connected devices", adapter.connected_devices()).await?.unwrap_or_else(|e| {
         log::warn!("scan: listing connected devices failed: {e}");
         Vec::new()
     });
@@ -95,6 +116,11 @@ pub struct Connection {
 }
 
 pub async fn open(info: &DeviceInfo) -> Result<Connection> {
+    let info = info.clone();
+    off_ui_thread(async move { open_device(&info).await }).await
+}
+
+async fn open_device(info: &DeviceInfo) -> Result<Connection> {
     // No-op on Windows (OS-managed). On Linux it is required when not yet connected,
     // and may fail with AlreadyConnected when the trackball is in use as a mouse.
     if !info.device.is_connected().await {
@@ -118,13 +144,13 @@ async fn find_chrc(device: &Device, svc: Uuid, chrc: Uuid) -> Result<Option<Char
 impl Connection {
     /// Zephyr shell text channel. Subscribes before returning, so no response is lost.
     pub async fn shell(&self) -> Result<Link> {
-        link(self.adapter.clone(), self.device.clone(), self.shell.clone()).await
+        off_ui_thread(link(self.adapter.clone(), self.device.clone(), self.shell.clone())).await
     }
 
     /// ZMK Studio RPC channel (framed protobuf); `None` if the firmware has no Studio service.
     pub async fn studio(&self) -> Option<Result<Link>> {
         let chrc = self.studio.clone()?;
-        Some(link(self.adapter.clone(), self.device.clone(), chrc).await)
+        Some(off_ui_thread(link(self.adapter.clone(), self.device.clone(), chrc)).await)
     }
 }
 

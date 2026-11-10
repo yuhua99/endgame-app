@@ -21,6 +21,8 @@ pub enum Error {
     NoAdapter,
     #[error("{0} not found on device")]
     NotFound(&'static str),
+    #[error("timed out: {0}")]
+    Timeout(&'static str),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
