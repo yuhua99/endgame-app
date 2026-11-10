@@ -11,7 +11,7 @@ use std::ops::RangeInclusive;
 
 use eg_shell::Shell;
 
-use crate::{exec_checked, exec_optional, rtcfg, Error, Result};
+use crate::{exec_checked, exec_optional, fields, rtcfg, Error, Result};
 
 /// Ranges used by Marshmellow UI's controls, in the units of the fields below.
 pub const POINTER_RANGE: RangeInclusive<u32> = 10..=1000;
@@ -255,11 +255,6 @@ pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String> {
         }
     }
     cmds
-}
-
-/// Values of lines starting with `key`, e.g. "Pointer: 28%" -> "28%".
-fn fields<'a>(out: &'a str, key: &'a str) -> impl Iterator<Item = &'a str> {
-    out.lines().filter_map(move |line| line.trim().strip_prefix(key)).map(str::trim)
 }
 
 /// "32%" or "~32.5%" -> 325 (0.1 % units).

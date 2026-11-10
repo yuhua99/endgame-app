@@ -51,6 +51,11 @@ pub(crate) async fn exec_checked(shell: &eg_shell::Shell, cmd: &str) -> Result<(
     }
 }
 
+/// Values of lines starting with `key`, e.g. "Pointer: 28%" -> "28%".
+pub(crate) fn fields<'a>(out: &'a str, key: &'a str) -> impl Iterator<Item = &'a str> {
+    out.lines().filter_map(move |line| line.trim().strip_prefix(key)).map(str::trim)
+}
+
 /// Output of a command that some firmware versions lack.
 pub(crate) async fn exec_optional(shell: &eg_shell::Shell, cmd: &str) -> Result<Option<String>> {
     match shell.exec(cmd).await {
