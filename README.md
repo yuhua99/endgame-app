@@ -14,10 +14,3 @@ cargo test --workspace --exclude eg-app
 - Windows: needs the WebView2 runtime (preinstalled on Windows 10/11).
 - Linux: needs the webkit2gtk-4.1, gtk3, xdo, and dbus development packages,
   e.g. `apt install libwebkit2gtk-4.1-dev libgtk-3-dev libxdo-dev libdbus-1-dev pkg-config`.
-
-### Windows binary from Linux
-
-```sh
-apt install gcc-mingw-w64-x86-64
-./scripts/build-win.sh                # builds and copies endgame.exe to /win_mnt/
-```

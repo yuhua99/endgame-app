@@ -198,7 +198,7 @@ One `thiserror` enum per crate. `eg-shell`: `Timeout(cmd)`, `Unsupported(cmd)`, 
 - Keymap tab: layout render, layer tabs, binding editor (behavior + params: constants, range, HID usage with mods and device limits, layer), live changes, Save/Discard, lock banner driven by notifications. Labels/HID tables in eg-app/assets (from zmk-studio, see NOTICE).
 - Not yet: `Capabilities`, background polling, `exec_bg` / `stream`, `closed()`, serial/dongle, keymap slot save (`keymap save`), layer add/remove/rename, firmware update.
 - Unverified on hardware: Studio over BLE together with the shell, all Studio calls, `rrl get` / `plane get pointer` formats.
-- Build for Windows: `scripts/build-win.sh` (GNU toolchain cross-compile → `/win_mnt/endgame.exe`). Linux build of eg-app needs webkit2gtk-4.1 / gtk3 dev packages.
+- Linux build of eg-app needs webkit2gtk-4.1 / gtk3 dev packages.
 - Fixtures: `crates/eg-device/tests/fixtures/v1.6.2/` (recorded over BLE, cleaned like `Framer`).
 
 ## Roadmap
