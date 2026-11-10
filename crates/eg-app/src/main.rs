@@ -13,6 +13,7 @@ mod lighting;
 mod logs;
 mod profiles;
 mod sensor;
+mod update;
 mod widgets;
 
 use dioxus::desktop::{Config, LogicalSize, WindowBuilder};

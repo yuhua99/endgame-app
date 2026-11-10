@@ -14,4 +14,6 @@ eg-device.workspace = true
 eg-transport.workspace = true
 env_logger.workspace = true
 rfd.workspace = true
+serde_json.workspace = true
 tokio.workspace = true
+ureq.workspace = true

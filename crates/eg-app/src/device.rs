@@ -10,6 +10,7 @@ use crate::lighting::LightingTab;
 use crate::logs::{self, LogsTab};
 use crate::profiles::ProfilesTab;
 use crate::sensor::SensorTab;
+use crate::update;
 
 /// Pause between readings of the battery level and active output.
 const STATUS_POLL: Duration = Duration::from_secs(5);
@@ -52,6 +53,16 @@ pub fn DevicePage(session: Signal<Option<Session>>, connect_status: Signal<Strin
     let keymap_changed = use_signal(|| 0u32);
     // Collected here rather than in the Logs tab, which is mounted only when first opened.
     let log = logs::use_log(session);
+    // A firmware release newer than the device's. Asked once per connection.
+    let mut newer_firmware = use_signal(|| None::<String>);
+    use_hook(move || {
+        spawn(async move {
+            let Some(installed) = session.peek().as_ref().map(|s| s.firmware.clone()) else {
+                return;
+            };
+            newer_firmware.set(update::newer_firmware(&installed).await);
+        });
+    });
     use_hook(move || {
         spawn(async move {
             loop {
@@ -84,7 +95,12 @@ pub fn DevicePage(session: Signal<Option<Session>>, connect_status: Signal<Strin
         div { class: "shell",
             header { class: "topbar",
                 span { class: "device", "{s.name}" }
-                span { class: "firmware", "Firmware {s.firmware}" }
+                span { class: "firmware",
+                    "Firmware {s.firmware}"
+                    if let Some(version) = newer_firmware() {
+                        a { class: "badge", href: update::RELEASES, title: "Open the firmware releases page", "{version} available" }
+                    }
+                }
                 if let Some(output) = status().output {
                     span { class: "output", title: "Where the trackball sends its input", "Output: {output_label(output)}" }
                 }

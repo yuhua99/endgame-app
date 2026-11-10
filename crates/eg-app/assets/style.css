@@ -131,6 +131,7 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
   margin-left: 8px; padding: 1px 8px; border: 1px solid var(--accent); border-radius: 10px;
   color: var(--accent); font-size: 12px;
 }
+a.badge { text-decoration: none; }
 
 .banner { border-color: var(--accent); }
 .toolbar { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
