@@ -51,6 +51,7 @@ button.ghost { background: transparent; color: var(--text); border: 1px solid va
 }
 .param { display: flex; align-items: center; gap: 8px; }
 .param .row { flex: 1; }
+.reset-slot { width: 64px; display: flex; justify-content: flex-end; }
 button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .muted { color: var(--muted); }
 .row input[type=range] { width: 100%; accent-color: var(--accent); }

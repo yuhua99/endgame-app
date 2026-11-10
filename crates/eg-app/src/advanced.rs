@@ -41,6 +41,9 @@ pub fn AdvancedTab(session: Signal<Option<Session>>) -> Element {
     };
     let busy = (ed.busy)();
     let dirty = ed.dirty();
+    // Reset is offered only where the device value differs from the default.
+    let saved = ed.saved.cloned().unwrap_or_default();
+    let differs = move |key: &str| saved.iter().any(|s| s.key == key && s.value != s.default);
     let mut groups: Vec<(String, Vec<Param>)> = Vec::new();
     for p in params {
         let module = p.key.split('/').next().unwrap_or_default().to_string();
@@ -58,15 +61,19 @@ pub fn AdvancedTab(session: Signal<Option<Session>>) -> Element {
                 for p in list {
                     div { class: "param", key: "{p.key}",
                         {param_row(p.clone(), busy, ed)}
-                        button {
-                            class: "ghost small",
-                            title: "Reset to default ({p.default})",
-                            disabled: busy || dirty || p.value == p.default,
-                            onclick: {
-                                let key = p.key.clone();
-                                move |_| reset(key.clone())
-                            },
-                            "Reset"
+                        span { class: "reset-slot",
+                            if differs(&p.key) {
+                                button {
+                                    class: "ghost small",
+                                    title: "Reset to default ({p.default})",
+                                    disabled: busy || dirty,
+                                    onclick: {
+                                        let key = p.key.clone();
+                                        move |_| reset(key.clone())
+                                    },
+                                    "Reset"
+                                }
+                            }
                         }
                     }
                 }
