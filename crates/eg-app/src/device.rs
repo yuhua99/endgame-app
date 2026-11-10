@@ -64,7 +64,7 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
                     div { key: "{t.title()}", class: "pane", hidden: tab() != t,
                         {
                             match t {
-                                Tab::Sensor => rsx! { SensorTab { session } },
+                                Tab::Sensor => rsx! { SensorTab { session, visible: tab() == t } },
                                 Tab::Advanced => rsx! { AdvancedTab { session } },
                                 Tab::Keymap => rsx! { KeymapTab { session } },
                                 _ => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },

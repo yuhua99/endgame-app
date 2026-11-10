@@ -66,6 +66,11 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .row input[type=range] { width: 100%; accent-color: var(--accent); }
 .row input[type=checkbox] { justify-self: start; width: 18px; height: 18px; accent-color: var(--accent); }
 .value { text-align: right; font-variant-numeric: tabular-nums; }
+.meter { height: 8px; border-radius: 4px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; }
+.meter > div { height: 100%; }
+.meter .low { background: #ef4444; }
+.meter .mid { background: #f59e0b; }
+.meter .high { background: #22c55e; }
 
 .banner { border-color: var(--accent); }
 .toolbar { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }

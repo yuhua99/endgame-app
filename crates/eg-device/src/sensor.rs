@@ -1,10 +1,10 @@
 //! Sensor settings: pointer and twist-scroll sensitivity, twist scroll, SMA smoothing,
-//! report sync window, and pointer plane rotation.
+//! report sync window, and pointer plane rotation. Also the live surface quality readout.
 //!
 //! Commands and value formats follow Marshmellow UI. `p2sm status` and
 //! `p2sm sens pointer get` outputs are recorded from firmware v1.6.2 (tests/fixtures);
 //! `rrl get` ("Sync window: N") and `plane get pointer` ("angle=N") are taken from
-//! Marshmellow's parsers and not yet recorded.
+//! Marshmellow's parsers and not yet recorded; so is `sensor surface`.
 
 use std::ops::RangeInclusive;
 
@@ -56,6 +56,39 @@ pub async fn apply(shell: &Shell, new: &SensorSettings) -> Result<SensorSettings
         shell.exec(&cmd).await?;
     }
     read(shell).await
+}
+
+/// One sensor's surface tracking quality, out of `max`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Surface {
+    pub sensor: u32,
+    pub quality: u32,
+    pub max: u32,
+}
+
+/// Current surface quality of each sensor. Firmware without the command fails with
+/// `Unsupported` (see `Error::is_unsupported`).
+pub async fn surface(shell: &Shell) -> Result<Vec<Surface>> {
+    parse_surface(&shell.exec("sensor surface").await?)
+}
+
+/// One "Sensor #1: surface quality = 412/728" line per sensor, in any letter case.
+pub fn parse_surface(out: &str) -> Result<Vec<Surface>> {
+    let number = |v: &str| v.trim_start().split(|c: char| !c.is_ascii_digit()).next()?.parse().ok();
+    let readings: Vec<Surface> = out
+        .lines()
+        .filter_map(|line| {
+            let line = line.to_ascii_lowercase();
+            let (sensor, rest) = line[line.find("sensor #")? + "sensor #".len()..].split_once(':')?;
+            let (quality, max) =
+                rest.trim_start().strip_prefix("surface quality")?.split_once('=')?.1.split_once('/')?;
+            Some(Surface { sensor: number(sensor)?, quality: number(quality)?, max: number(max)? })
+        })
+        .collect();
+    if readings.is_empty() {
+        return Err(Error::Parse { cmd: "sensor surface".into(), output: out.into() });
+    }
+    Ok(readings)
 }
 
 pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Result<SensorSettings> {
@@ -187,6 +220,21 @@ mod tests {
     fn parses_decimal_and_approx_pct() {
         assert_eq!(parse_pct("~32.5%"), Some(325));
         assert_eq!(parse_pct("enabled"), None);
+    }
+
+    #[test]
+    fn parses_surface_quality() {
+        let out = "Sensor #1: surface quality = 412/728\nSensor #2: surface quality=0/728 (lifted)\n";
+        assert_eq!(
+            parse_surface(out).unwrap(),
+            [Surface { sensor: 1, quality: 412, max: 728 }, Surface { sensor: 2, quality: 0, max: 728 }]
+        );
+        assert_eq!(
+            parse_surface("sensor #3: SURFACE QUALITY = 5/9").unwrap(),
+            [Surface { sensor: 3, quality: 5, max: 9 }]
+        );
+        let err = parse_surface("Sensor #1: movement = 412/728").unwrap_err();
+        assert!(matches!(err, Error::Parse { cmd, .. } if cmd == "sensor surface"));
     }
 
     #[test]

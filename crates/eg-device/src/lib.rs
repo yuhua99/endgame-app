@@ -27,6 +27,11 @@ impl Error {
     pub fn is_unlock_required(&self) -> bool {
         matches!(self, Error::Studio(eg_studio::Error::UnlockRequired))
     }
+
+    /// The firmware does not have the shell command.
+    pub fn is_unsupported(&self) -> bool {
+        matches!(self, Error::Shell(eg_shell::Error::Unsupported(_)))
+    }
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

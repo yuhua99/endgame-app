@@ -1,12 +1,42 @@
+use std::time::Duration;
+
 use dioxus::prelude::*;
-use eg_device::sensor::{self, SensorSettings};
+use eg_device::sensor::{self, SensorSettings, Surface};
 use eg_device::Session;
 
 use crate::editable::use_editable;
 use crate::widgets::{Actions, Slider, Toggle};
 
+/// Pause between surface quality readings.
+const SURFACE_POLL: Duration = Duration::from_millis(100);
+
+/// `part / whole`, or 0 when there is no whole.
+fn share(part: u32, whole: u32) -> f64 {
+    if whole == 0 {
+        0.0
+    } else {
+        part as f64 / whole as f64
+    }
+}
+
+/// Bar colour class. The colour changes at the same readings as in Marshmellow UI,
+/// which rates a reported maximum of 728 on a 0-1000 scale.
+fn level(reading: &Surface) -> &'static str {
+    let scale = if reading.max == 728 { 1000 } else { reading.max };
+    let (mid, high) = match scale {
+        361 => (0.30, 0.60),
+        1000 => (0.25, 0.50),
+        _ => (0.34, 0.67),
+    };
+    match share(reading.quality, scale) {
+        r if r < mid => "low",
+        r if r < high => "mid",
+        _ => "high",
+    }
+}
+
 #[component]
-pub fn SensorTab(session: Signal<Option<Session>>) -> Element {
+pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) -> Element {
     let ed = use_editable::<SensorSettings>();
     let shell = move || session.peek().as_ref().map(|s| s.shell().clone());
     let reload = move || async move {
@@ -39,6 +69,7 @@ pub fn SensorTab(session: Signal<Option<Session>>) -> Element {
     let (twist_min, twist_max) = pct(&sensor::TWIST_RANGE);
 
     rsx! {
+        SurfaceCard { session, visible }
         section { class: "card",
             h2 { "Pointer" }
             Slider {
@@ -129,6 +160,66 @@ pub fn SensorTab(session: Signal<Option<Session>>) -> Element {
             on_apply: move |_| {
                 spawn(apply());
             },
+        }
+    }
+}
+
+/// Live surface quality of each sensor, read repeatedly while the tab is visible.
+#[component]
+fn SurfaceCard(session: Signal<Option<Session>>, visible: ReadSignal<bool>) -> Element {
+    let mut state = use_signal(|| Ok::<Vec<Surface>, String>(Vec::new()));
+    use_hook(move || {
+        spawn(async move {
+            loop {
+                if *visible.peek() {
+                    let Some(shell) = session.peek().as_ref().map(|s| s.shell().clone()) else {
+                        break;
+                    };
+                    let (new, done) = match sensor::surface(&shell).await {
+                        Ok(readings) => (Ok(readings), false),
+                        Err(e) if e.is_unsupported() => (Err("Not available on this firmware.".to_string()), true),
+                        Err(e) => (Err(e.to_string()), false),
+                    };
+                    if *state.peek() != new {
+                        state.set(new);
+                    }
+                    if done {
+                        break;
+                    }
+                }
+                tokio::time::sleep(SURFACE_POLL).await;
+            }
+        });
+    });
+
+    rsx! {
+        section { class: "card",
+            h2 { "Surface quality" }
+            {
+                match state() {
+                    Ok(readings) if readings.is_empty() => rsx! { p { class: "placeholder", "Reading…" } },
+                    Ok(readings) => rsx! {
+                        for r in readings {
+                            SurfaceRow { key: "{r.sensor}", reading: r }
+                        }
+                    },
+                    Err(e) => rsx! { p { class: "placeholder", "{e}" } },
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn SurfaceRow(reading: Surface) -> Element {
+    let pct = (share(reading.quality, reading.max) * 100.0).min(100.0);
+    rsx! {
+        div { class: "row",
+            span { class: "label", "Sensor #{reading.sensor}" }
+            div { class: "meter",
+                div { class: level(&reading), width: "{pct}%" }
+            }
+            span { class: "value", "{reading.quality}/{reading.max}" }
         }
     }
 }
