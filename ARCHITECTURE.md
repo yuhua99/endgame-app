@@ -55,10 +55,10 @@ endgame-app/
     eg-shell/      src/{lib, framer, client}.rs
     eg-studio/     src/{lib, framing, client}.rs, build.rs (prost), proto/ (zmk-studio-messages)
     eg-device/     src/{lib, session}.rs
-                   src/{sensor, rtcfg, profiles, board, keymap}.rs   features
+                   src/{sensor, rtcfg, profiles, lighting, board, keymap}.rs   features
                    tests/fixtures/v1.6.2/*.txt                       recorded device output
     eg-app/        src/{main, connect, device}.rs                    app, connect page, device page
-                   src/{sensor, advanced, keymap, profiles, logs}.rs tabs
+                   src/{sensor, advanced, keymap, profiles, lighting, logs}.rs   tabs
                    src/{editable, widgets, endgame, hid}.rs          form state, form rows, trackball drawing, HID usages
                    assets/{style.css, hid_usages.tsv, behavior_short_names.tsv}   tables from zmk-studio, keep NOTICE
 ```
@@ -128,6 +128,7 @@ The connection closes when the last clone drops.
 | `sensor` | sensitivity, twist, SMA, sync window, rotation, frame sync, sensitivity behaviors; surface quality | shell: `p2sm`, `rrl`, `plane`, `rtcfg`, `sensor surface` |
 | `rtcfg` | runtime parameters as a generic list | shell: `rtcfg` |
 | `profiles` | keymap slots, output assignments, autoswitch, OS mode | shell: `keymap`, `bistable`, `rtcfg`; asks Studio about unsaved edits |
+| `lighting` | light and vibration per event, light switch, brightness, RGB support and override | shell: `argb`, `board rgb`, `board layers`, `rtcfg` |
 | `board` | battery, active output | shell: `board status`, `board output` |
 | `keymap` | layout, layers, behaviors, bindings, save/discard, lock and unsaved-changes events | Studio |
 
@@ -149,7 +150,7 @@ pub async fn apply(shell: &Shell, saved: &SensorSettings, new: &SensorSettings) 
 - `App` holds a `Signal<Option<Session>>`: `None` shows the connect page, `Some` the device page (top bar and tabs). Pages and tabs get the signal as a prop.
 - Dioxus signals are not `Send`; `eg-device` never sees them.
 - A tab is mounted on first visit and then only hidden, so switching tabs never cancels a running operation.
-- Sensor and Advanced keep an `Editable<T>`: `saved` mirrors the device, `form` holds the edits, Apply sends the difference. They read the device again when reopened without edits.
+- Sensor, Advanced, and Lighting keep an `Editable<T>`: `saved` mirrors the device, `form` holds the edits, Apply sends the difference. They read the device again when reopened without edits.
 - Polling lives here: surface quality every 100 ms while the Sensor tab is visible, battery and active output every 5 s. Both use `exec_bg`.
 - The 5 s poll is also the heartbeat: when it fails (link closed, or no answer within the shell timeout), the app drops the session and shows the connect page with the reason.
 - The device page subscribes to the shell log when it mounts; the Logs tab shows it and sends typed commands.
