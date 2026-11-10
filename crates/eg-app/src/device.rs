@@ -6,6 +6,7 @@ use eg_device::Session;
 
 use crate::advanced::AdvancedTab;
 use crate::keymap::KeymapTab;
+use crate::profiles::ProfilesTab;
 use crate::sensor::SensorTab;
 
 /// Pause between readings of the battery level and active output.
@@ -16,17 +17,19 @@ enum Tab {
     Sensor,
     Advanced,
     Keymap,
+    Profiles,
     Lighting,
 }
 
 impl Tab {
-    const ALL: [Tab; 4] = [Tab::Sensor, Tab::Advanced, Tab::Keymap, Tab::Lighting];
+    const ALL: [Tab; 5] = [Tab::Sensor, Tab::Advanced, Tab::Keymap, Tab::Profiles, Tab::Lighting];
 
     fn title(self) -> &'static str {
         match self {
             Tab::Sensor => "Sensor",
             Tab::Advanced => "Advanced",
             Tab::Keymap => "Keymap",
+            Tab::Profiles => "Profiles",
             Tab::Lighting => "Lighting",
         }
     }
@@ -40,6 +43,8 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
     // a running operation and each tab loads its data once.
     let mut opened = use_signal(|| vec![Tab::Sensor]);
     let mut status = use_signal(board::Status::default);
+    // Bumped by the Profiles tab when it replaces the keymap, so the Keymap tab reads it again.
+    let keymap_changed = use_signal(|| 0u32);
     use_hook(move || {
         spawn(async move {
             loop {
@@ -93,8 +98,9 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
                             match t {
                                 Tab::Sensor => rsx! { SensorTab { session, visible: tab() == t } },
                                 Tab::Advanced => rsx! { AdvancedTab { session, visible: tab() == t } },
-                                Tab::Keymap => rsx! { KeymapTab { session } },
-                                _ => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },
+                                Tab::Keymap => rsx! { KeymapTab { session, reload: keymap_changed } },
+                                Tab::Profiles => rsx! { ProfilesTab { session, visible: tab() == t, keymap_changed } },
+                                Tab::Lighting => rsx! { p { class: "placeholder", "{t.title()} is not implemented yet." } },
                             }
                         }
                     }

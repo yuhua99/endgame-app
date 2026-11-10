@@ -19,8 +19,9 @@ struct Data {
 }
 
 /// Studio-based key remapping. Changes apply to the device immediately; Save persists them.
+/// A change of `reload` means the keymap was replaced elsewhere and is read again.
 #[component]
-pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
+pub fn KeymapTab(session: Signal<Option<Session>>, reload: ReadSignal<u32>) -> Element {
     let mut locked = use_signal(|| None::<bool>);
     let mut data = use_signal(|| None::<Data>);
     let mut unsaved = use_signal(|| false);
@@ -123,6 +124,10 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
                 }
             }
         });
+    });
+    // Loads at the start and whenever `reload` changes.
+    use_effect(move || {
+        reload();
         spawn(load());
     });
 

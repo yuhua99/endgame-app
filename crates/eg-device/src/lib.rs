@@ -3,6 +3,7 @@
 
 pub mod board;
 pub mod keymap;
+pub mod profiles;
 pub mod rtcfg;
 pub mod sensor;
 mod session;
@@ -19,6 +20,8 @@ pub enum Error {
     Studio(#[from] eg_studio::Error),
     #[error("device rejected the request: {0}")]
     Rejected(String),
+    #[error("the keymap has unsaved changes; save or discard them first")]
+    UnsavedKeymap,
     #[error("unexpected output of {cmd:?}: {output:?}")]
     Parse { cmd: String, output: String },
 }

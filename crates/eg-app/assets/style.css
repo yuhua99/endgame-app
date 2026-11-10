@@ -75,6 +75,19 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .meter .mid { background: #f59e0b; }
 .meter .high { background: #22c55e; }
 
+.row select, .slot input {
+  background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit;
+}
+.row select { justify-self: start; min-width: 220px; }
+.slot { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.slot .label { width: 184px; }
+.slot .name { flex: 1; min-width: 0; }
+.slot input { width: 100%; max-width: 260px; box-sizing: border-box; }
+.badge {
+  margin-left: 8px; padding: 1px 8px; border: 1px solid var(--accent); border-radius: 10px;
+  color: var(--accent); font-size: 12px;
+}
+
 .banner { border-color: var(--accent); }
 .toolbar { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
 .toolbar .tab { border-bottom: 2px solid transparent; }
@@ -116,5 +129,5 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
   position: sticky; bottom: 0; margin: auto -20px 0; display: flex; justify-content: flex-end; align-items: center;
   gap: 8px; padding: 12px 20px; background: var(--bg); border-top: 1px solid var(--line);
 }
-.actions .error { flex: 1; }
+.actions .error, .actions .prompt { flex: 1; }
 .error { color: var(--error); }
