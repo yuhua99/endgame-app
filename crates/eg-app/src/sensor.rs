@@ -73,91 +73,93 @@ pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) ->
     let (twist_min, twist_max) = pct(&sensor::TWIST_RANGE);
 
     rsx! {
-        SurfaceCard { session, visible }
-        section { class: "card",
-            h2 { "Pointer" }
-            Slider {
-                label: "Sensitivity",
-                disabled: busy,
-                value: f.pointer as f64 / 10.0,
-                min: pointer_min,
-                max: pointer_max,
-                step: 0.1,
-                unit: "%",
-                on_change: move |v: f64| ed.edit(|s| s.pointer = (v * 10.0).round() as u32),
-            }
-            if let Some(deg) = f.plane_deg {
+        div { class: "cards",
+            SurfaceCard { session, visible }
+            section { class: "card",
+                h2 { "Pointer" }
                 Slider {
-                    label: "Rotation",
+                    label: "Sensitivity",
                     disabled: busy,
-                    value: deg as f64,
-                    min: *sensor::PLANE_DEG_RANGE.start() as f64,
-                    max: *sensor::PLANE_DEG_RANGE.end() as f64,
-                    step: 1.0,
-                    unit: "°",
-                    on_change: move |v: f64| ed.edit(|s| s.plane_deg = Some(v.round() as i32)),
+                    value: f.pointer as f64 / 10.0,
+                    min: pointer_min,
+                    max: pointer_max,
+                    step: 0.1,
+                    unit: "%",
+                    on_change: move |v: f64| ed.edit(|s| s.pointer = (v * 10.0).round() as u32),
+                }
+                if let Some(deg) = f.plane_deg {
+                    Slider {
+                        label: "Rotation",
+                        disabled: busy,
+                        value: deg as f64,
+                        min: *sensor::PLANE_DEG_RANGE.start() as f64,
+                        max: *sensor::PLANE_DEG_RANGE.end() as f64,
+                        step: 1.0,
+                        unit: "°",
+                        on_change: move |v: f64| ed.edit(|s| s.plane_deg = Some(v.round() as i32)),
+                    }
                 }
             }
-        }
-        section { class: "card",
-            h2 { "Twist scroll" }
-            Toggle {
-                label: "Enabled",
-                disabled: busy,
-                checked: f.twist_on,
-                on_change: move |v: bool| ed.edit(|s| s.twist_on = v),
-            }
-            Slider {
-                label: "Sensitivity",
-                disabled: busy,
-                value: f.twist as f64 / 10.0,
-                min: twist_min,
-                max: twist_max,
-                step: 0.1,
-                unit: "%",
-                on_change: move |v: f64| ed.edit(|s| s.twist = (v * 10.0).round() as u32),
-            }
-            Toggle {
-                label: "Reversed",
-                disabled: busy,
-                checked: f.twist_reversed,
-                on_change: move |v: bool| ed.edit(|s| s.twist_reversed = v),
-            }
-        }
-        section { class: "card",
-            h2 { "Smoothing" }
-            Toggle {
-                label: "SMA smoothing",
-                disabled: busy,
-                checked: f.sma_on,
-                on_change: move |v: bool| ed.edit(|s| s.sma_on = v),
-            }
-            Slider {
-                label: "Window",
-                disabled: busy,
-                value: f.sma_window as f64,
-                min: *sensor::SMA_WINDOW_RANGE.start() as f64,
-                max: *sensor::SMA_WINDOW_RANGE.end() as f64,
-                step: 1.0,
-                unit: " samples",
-                on_change: move |v: f64| ed.edit(|s| s.sma_window = v.round() as u32),
-            }
-            Slider {
-                label: "Sync window",
-                disabled: busy,
-                value: f.sync_ms as f64,
-                min: *sensor::SYNC_MS_RANGE.start() as f64,
-                max: *sensor::SYNC_MS_RANGE.end() as f64,
-                step: 1.0,
-                unit: " ms",
-                on_change: move |v: f64| ed.edit(|s| s.sync_ms = v.round() as u32),
-            }
-            if let Some(on) = f.frame_sync {
+            section { class: "card",
+                h2 { "Twist scroll" }
                 Toggle {
-                    label: "Frame sync",
+                    label: "Enabled",
                     disabled: busy,
-                    checked: on,
-                    on_change: move |v: bool| ed.edit(|s| s.frame_sync = Some(v)),
+                    checked: f.twist_on,
+                    on_change: move |v: bool| ed.edit(|s| s.twist_on = v),
+                }
+                Slider {
+                    label: "Sensitivity",
+                    disabled: busy,
+                    value: f.twist as f64 / 10.0,
+                    min: twist_min,
+                    max: twist_max,
+                    step: 0.1,
+                    unit: "%",
+                    on_change: move |v: f64| ed.edit(|s| s.twist = (v * 10.0).round() as u32),
+                }
+                Toggle {
+                    label: "Reversed",
+                    disabled: busy,
+                    checked: f.twist_reversed,
+                    on_change: move |v: bool| ed.edit(|s| s.twist_reversed = v),
+                }
+            }
+            section { class: "card",
+                h2 { "Smoothing" }
+                Toggle {
+                    label: "SMA smoothing",
+                    disabled: busy,
+                    checked: f.sma_on,
+                    on_change: move |v: bool| ed.edit(|s| s.sma_on = v),
+                }
+                Slider {
+                    label: "Window",
+                    disabled: busy,
+                    value: f.sma_window as f64,
+                    min: *sensor::SMA_WINDOW_RANGE.start() as f64,
+                    max: *sensor::SMA_WINDOW_RANGE.end() as f64,
+                    step: 1.0,
+                    unit: " samples",
+                    on_change: move |v: f64| ed.edit(|s| s.sma_window = v.round() as u32),
+                }
+                Slider {
+                    label: "Sync window",
+                    disabled: busy,
+                    value: f.sync_ms as f64,
+                    min: *sensor::SYNC_MS_RANGE.start() as f64,
+                    max: *sensor::SYNC_MS_RANGE.end() as f64,
+                    step: 1.0,
+                    unit: " ms",
+                    on_change: move |v: f64| ed.edit(|s| s.sync_ms = v.round() as u32),
+                }
+                if let Some(on) = f.frame_sync {
+                    Toggle {
+                        label: "Frame sync",
+                        disabled: busy,
+                        checked: on,
+                        on_change: move |v: bool| ed.edit(|s| s.frame_sync = Some(v)),
+                    }
                 }
             }
         }
@@ -165,9 +167,11 @@ pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) ->
             p { class: "placeholder",
                 "The behaviors below change a sensitivity when their key is pressed or their encoder is turned. Assign them in the Keymap tab."
             }
-        }
-        for (i, b) in f.behaviors.iter().enumerate() {
-            {behavior_card(ed, i, b, busy)}
+            div { class: "cards",
+                for (i, b) in f.behaviors.iter().enumerate() {
+                    {behavior_card(ed, i, b, busy)}
+                }
+            }
         }
         Actions {
             error: ed.error.cloned(),

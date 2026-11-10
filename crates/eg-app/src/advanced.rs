@@ -59,23 +59,25 @@ pub fn AdvancedTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) 
 
     rsx! {
         p { class: "placeholder", "Values are stored on the device. Reset restores a parameter's built-in default immediately." }
-        for (module, list) in groups {
-            section { class: "card", key: "{module}",
-                h2 { "{module}" }
-                for p in list {
-                    div { class: "param", key: "{p.key}",
-                        {param_row(p.clone(), busy, ed)}
-                        span { class: "reset-slot",
-                            if differs(&p.key) {
-                                button {
-                                    class: "ghost small",
-                                    title: "Reset to default ({p.default})",
-                                    disabled: busy || dirty,
-                                    onclick: {
-                                        let key = p.key.clone();
-                                        move |_| reset(key.clone())
-                                    },
-                                    "Reset"
+        div { class: "cards wide",
+            for (module, list) in groups {
+                section { class: "card", key: "{module}",
+                    h2 { "{module}" }
+                    for p in list {
+                        div { class: "param", key: "{p.key}",
+                            {param_row(p.clone(), busy, ed)}
+                            span { class: "reset-slot",
+                                if differs(&p.key) {
+                                    button {
+                                        class: "ghost small",
+                                        title: "Reset to default ({p.default})",
+                                        disabled: busy || dirty,
+                                        onclick: {
+                                            let key = p.key.clone();
+                                            move |_| reset(key.clone())
+                                        },
+                                        "Reset"
+                                    }
                                 }
                             }
                         }

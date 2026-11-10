@@ -15,7 +15,7 @@ pub fn Slider(
 ) -> Element {
     let shown = if step < 1.0 { format!("{value:.1}") } else { format!("{value:.0}") };
     rsx! {
-        label { class: "row",
+        label { class: "row slider",
             span { class: "label", "{label}" }
             input {
                 r#type: "range",

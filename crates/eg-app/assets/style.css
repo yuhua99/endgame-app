@@ -62,6 +62,16 @@ button.ghost { background: transparent; color: var(--text); border: 1px solid va
   border-radius: 6px; padding: 5px 8px; font: inherit;
 }
 .row input[type=text] { width: 100%; box-sizing: border-box; }
+/* Settings cards flow into as many columns as the window fits, each card kept whole. */
+.cards { columns: 380px; column-gap: 16px; }
+.cards.wide { columns: 460px; }
+.cards .card { break-inside: avoid; }
+.cards .row { grid-template-columns: 140px minmax(0, 1fr) auto; }
+.cards .row .label { overflow-wrap: anywhere; }
+.cards .row input[type=number] { width: 100%; max-width: 140px; box-sizing: border-box; }
+/* A slider takes the card's width, under its label and value. */
+.cards .row.slider { grid-template-columns: 1fr auto; }
+.cards .row.slider input { grid-row: 2; grid-column: 1 / -1; }
 .param { display: flex; align-items: center; gap: 8px; }
 .param .row { flex: 1; }
 .reset-slot { width: 64px; display: flex; justify-content: flex-end; }
