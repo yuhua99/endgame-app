@@ -53,9 +53,7 @@ async fn run(shell: &Shell, cmd: &str) -> Result<()> {
 pub fn parse(out: &str) -> Result<Vec<Param>> {
     out.lines()
         .filter(|l| !l.trim().is_empty())
-        .map(|line| {
-            parse_line(line).ok_or_else(|| Error::Parse { cmd: "rtcfg list".into(), output: line.into() })
-        })
+        .map(|line| parse_line(line).ok_or_else(|| Error::Parse { cmd: "rtcfg list".into(), output: line.into() }))
         .collect()
 }
 

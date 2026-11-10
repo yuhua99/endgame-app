@@ -75,10 +75,7 @@ async fn scan_devices() -> Result<Vec<DeviceInfo>> {
         }
     }
 
-    let mut devices = adapter
-        .discover_devices(&[SHELL_SVC])
-        .await?
-        .take_until(Box::pin(tokio::time::sleep(SCAN_TIME)));
+    let mut devices = adapter.discover_devices(&[SHELL_SVC]).await?.take_until(Box::pin(tokio::time::sleep(SCAN_TIME)));
     while let Some(device) = devices.next().await {
         let device = match device {
             Ok(d) => d,
@@ -126,9 +123,7 @@ async fn open_device(info: &DeviceInfo) -> Result<Connection> {
     if !info.device.is_connected().await {
         info.adapter.connect_device(&info.device).await?;
     }
-    let shell = find_chrc(&info.device, SHELL_SVC, SHELL_CHRC)
-        .await?
-        .ok_or(Error::NotFound("shell characteristic"))?;
+    let shell = find_chrc(&info.device, SHELL_SVC, SHELL_CHRC).await?.ok_or(Error::NotFound("shell characteristic"))?;
     let studio = find_chrc(&info.device, STUDIO_SVC, STUDIO_CHRC).await?;
     log::debug!("studio characteristic: {}", studio.is_some());
     Ok(Connection { adapter: info.adapter.clone(), device: info.device.clone(), shell, studio })

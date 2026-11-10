@@ -83,11 +83,9 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
         busy.set(true);
         let result = async {
             match op {
-                ChangeOp::Bind {
-                    layer_id,
-                    position,
-                    binding,
-                } => km::set_binding(&st, layer_id, position, binding).await?,
+                ChangeOp::Bind { layer_id, position, binding } => {
+                    km::set_binding(&st, layer_id, position, binding).await?
+                }
                 ChangeOp::Save => km::save(&st).await?,
                 ChangeOp::Discard => km::discard(&st).await?,
             }
@@ -229,11 +227,7 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
 }
 
 enum ChangeOp {
-    Bind {
-        layer_id: u32,
-        position: i32,
-        binding: BehaviorBinding,
-    },
+    Bind { layer_id: u32, position: i32, binding: BehaviorBinding },
     Save,
     Discard,
 }
@@ -271,13 +265,7 @@ fn key_caps(keys: &[KeyPhysicalAttrs], layer: &Layer, behaviors: &[Behavior], la
                 Some(b) => binding_text(b, behaviors, layers),
                 None => (String::new(), "?".into(), "No binding".into()),
             };
-            Cap {
-                pos,
-                style,
-                header,
-                label,
-                title,
-            }
+            Cap { pos, style, header, label, title }
         })
         .collect()
 }
@@ -299,25 +287,14 @@ fn binding_text(b: &BehaviorBinding, behaviors: &[Behavior], layers: &[Layer]) -
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()
         .join(" ");
-    let title = if label.is_empty() {
-        beh.display_name.clone()
-    } else {
-        format!("{}: {label}", beh.display_name)
-    };
+    let title = if label.is_empty() { beh.display_name.clone() } else { format!("{}: {label}", beh.display_name) };
     (hid::behavior_short(&beh.display_name), label, title)
 }
 
 fn param_text(descs: &[ParamDesc], value: u32, layers: &[Layer]) -> String {
     let ids: Vec<u32> = layers.iter().map(|l| l.id).collect();
-    let Some(d) = descs
-        .iter()
-        .find(|d| km::accepts(std::slice::from_ref(*d), value, &ids))
-    else {
-        return if descs.is_empty() {
-            String::new()
-        } else {
-            value.to_string()
-        };
+    let Some(d) = descs.iter().find(|d| km::accepts(std::slice::from_ref(*d), value, &ids)) else {
+        return if descs.is_empty() { String::new() } else { value.to_string() };
     };
     match &d.value_type {
         Some(ValueType::HidUsage(_)) => hid::label(value),
@@ -353,10 +330,7 @@ fn BindingEditor(
     let ids: Vec<u32> = layers.iter().map(|l| l.id).collect();
     let current = behaviors.iter().find(|b| b.id as i32 == binding.behavior_id).cloned();
     let for_param1 = (current.clone(), ids.clone());
-    let (p1, p2) = current
-        .as_ref()
-        .map(|b| km::param_descs(b, binding.param1, &ids))
-        .unwrap_or_default();
+    let (p1, p2) = current.as_ref().map(|b| km::param_descs(b, binding.param1, &ids)).unwrap_or_default();
     let options = behaviors.clone();
     rsx! {
         section { class: "card editor",
@@ -424,9 +398,7 @@ fn ParamPicker(
     disabled: bool,
     on_change: EventHandler<u32>,
 ) -> Element {
-    let all_constant = descs
-        .iter()
-        .all(|d| matches!(d.value_type, Some(ValueType::Constant(_))));
+    let all_constant = descs.iter().all(|d| matches!(d.value_type, Some(ValueType::Constant(_))));
     let control = if all_constant {
         let known = descs.iter().any(|d| d.value_type == Some(ValueType::Constant(value)));
         rsx! {

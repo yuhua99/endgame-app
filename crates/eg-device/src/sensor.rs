@@ -194,8 +194,12 @@ mod tests {
         let old = sample();
         assert!(diff(&old, &old).is_empty());
 
-        let new = SensorSettings { pointer: 300, twist_reversed: true, sma_on: true, plane_deg: Some(0), ..old.clone() };
-        assert_eq!(diff(&old, &new), ["p2sm sens pointer set 300", "p2sm twist reverse", "p2sm sma on", "plane set pointer 0"]);
+        let new =
+            SensorSettings { pointer: 300, twist_reversed: true, sma_on: true, plane_deg: Some(0), ..old.clone() };
+        assert_eq!(
+            diff(&old, &new),
+            ["p2sm sens pointer set 300", "p2sm twist reverse", "p2sm sma on", "plane set pointer 0"]
+        );
     }
 
     #[test]

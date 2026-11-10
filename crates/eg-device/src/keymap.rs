@@ -6,9 +6,11 @@ use eg_studio::proto::{behaviors, core, keymap, studio};
 use tokio::sync::broadcast;
 
 pub use eg_studio::proto::behaviors::behavior_parameter_value_description::ValueType;
-pub use eg_studio::Studio;
-pub use eg_studio::proto::behaviors::{BehaviorParameterValueDescription as ParamDesc, GetBehaviorDetailsResponse as Behavior};
+pub use eg_studio::proto::behaviors::{
+    BehaviorParameterValueDescription as ParamDesc, GetBehaviorDetailsResponse as Behavior,
+};
 pub use eg_studio::proto::keymap::{BehaviorBinding, KeyPhysicalAttrs, Keymap, Layer, PhysicalLayout};
+pub use eg_studio::Studio;
 
 use crate::{Error, Result};
 
@@ -91,7 +93,8 @@ pub async fn behaviors(studio: &Studio) -> Result<Vec<Behavior>> {
     };
     let mut list = Vec::with_capacity(ids.len());
     for behavior_id in ids {
-        let req = behaviors::request::RequestType::GetBehaviorDetails(behaviors::GetBehaviorDetailsRequest { behavior_id });
+        let req =
+            behaviors::request::RequestType::GetBehaviorDetails(behaviors::GetBehaviorDetailsRequest { behavior_id });
         match behaviors_call(studio, req).await? {
             behaviors::response::ResponseType::GetBehaviorDetails(d) => list.push(d),
             _ => return Err(eg_studio::Error::UnexpectedResponse.into()),
@@ -108,10 +111,12 @@ pub async fn set_binding(studio: &Studio, layer_id: u32, key_position: i32, bind
         binding: Some(binding),
     });
     match keymap_call(studio, req).await? {
-        keymap::response::ResponseType::SetLayerBinding(code) => match keymap::SetLayerBindingResponse::try_from(code) {
-            Ok(keymap::SetLayerBindingResponse::SetLayerBindingRespOk) => Ok(()),
-            other => Err(Error::Rejected(format!("set binding: {other:?}"))),
-        },
+        keymap::response::ResponseType::SetLayerBinding(code) => {
+            match keymap::SetLayerBindingResponse::try_from(code) {
+                Ok(keymap::SetLayerBindingResponse::SetLayerBindingRespOk) => Ok(()),
+                other => Err(Error::Rejected(format!("set binding: {other:?}"))),
+            }
+        }
         _ => Err(eg_studio::Error::UnexpectedResponse.into()),
     }
 }
@@ -216,7 +221,10 @@ async fn keymap_call(studio: &Studio, r: keymap::request::RequestType) -> Result
     }
 }
 
-async fn behaviors_call(studio: &Studio, r: behaviors::request::RequestType) -> Result<behaviors::response::ResponseType> {
+async fn behaviors_call(
+    studio: &Studio,
+    r: behaviors::request::RequestType,
+) -> Result<behaviors::response::ResponseType> {
     match studio.call(Req::Behaviors(behaviors::Request { request_type: Some(r) })).await? {
         Resp::Behaviors(behaviors::Response { response_type: Some(t) }) => Ok(t),
         _ => Err(eg_studio::Error::UnexpectedResponse.into()),
@@ -291,7 +299,10 @@ mod tests {
     fn param1_change_resets_invalid_param2() {
         // e.g. BT_SEL takes a profile index as param2, BT_NXT takes none.
         let b = behavior(vec![
-            (vec![desc(ValueType::Constant(3))], vec![desc(ValueType::Range(behaviors::BehaviorParameterValueDescriptionRange { min: 0, max: 4 }))]),
+            (
+                vec![desc(ValueType::Constant(3))],
+                vec![desc(ValueType::Range(behaviors::BehaviorParameterValueDescriptionRange { min: 0, max: 4 }))],
+            ),
             (vec![desc(ValueType::Constant(1))], vec![]),
         ]);
         let sel = BehaviorBinding { behavior_id: 1, param1: 3, param2: 2 };

@@ -44,7 +44,8 @@ impl Studio {
                 for frame in decoder.push(&bytes) {
                     match studio::Response::decode(frame.as_slice()) {
                         Ok(studio::Response { r#type: Some(studio::response::Type::RequestResponse(resp)) }) => {
-                            let waiter = reader_pending.lock().unwrap().as_mut().and_then(|p| p.remove(&resp.request_id));
+                            let waiter =
+                                reader_pending.lock().unwrap().as_mut().and_then(|p| p.remove(&resp.request_id));
                             match waiter {
                                 Some(w) => drop(w.send(resp)),
                                 None => log::warn!("studio: response to unknown request {}", resp.request_id),
@@ -202,10 +203,7 @@ mod tests {
     #[tokio::test(start_paused = true)]
     async fn ignores_other_ids_and_times_out() {
         let studio = device(|id| {
-            respond(
-                id + 100,
-                studio::request_response::Subsystem::Core(core::Response { response_type: None }),
-            )
+            respond(id + 100, studio::request_response::Subsystem::Core(core::Response { response_type: None }))
         });
         assert!(matches!(studio.call(get_lock_state()).await, Err(Error::Timeout)));
     }
