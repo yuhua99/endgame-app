@@ -39,8 +39,9 @@ impl Tab {
 }
 
 #[component]
-pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
+pub fn DevicePage(session: Signal<Option<Session>>, connect_status: Signal<String>) -> Element {
     let mut session = session;
+    let mut connect_status = connect_status;
     let mut tab = use_signal(|| Tab::Sensor);
     // A tab is mounted on first visit and then only hidden, so switching never cancels
     // a running operation and each tab loads its data once.
@@ -56,7 +57,17 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
                 let Some(shell) = session.peek().as_ref().map(|s| s.shell().clone()) else {
                     break;
                 };
-                let new = board::status(&shell).await.unwrap_or_default();
+                // This poll doubles as the heartbeat: no answer means the connection is gone.
+                let new = match board::status(&shell).await {
+                    Ok(new) => new,
+                    // The firmware answered, it just lacks the command.
+                    Err(e) if e.is_unsupported() => board::Status::default(),
+                    Err(e) => {
+                        connect_status.set(format!("Connection lost: {e}"));
+                        session.set(None);
+                        break;
+                    }
+                };
                 if *status.peek() != new {
                     status.set(new);
                 }

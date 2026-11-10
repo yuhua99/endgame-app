@@ -30,12 +30,14 @@ fn main() {
 fn App() -> Element {
     // Some = connected. Pages set it to connect or disconnect.
     let session = use_signal(|| None::<Session>);
+    // The connect page's status line. The device page writes it when the connection is lost.
+    let status = use_signal(String::new);
     rsx! {
         style { "{CSS}" }
         if session.read().is_some() {
-            device::DevicePage { session }
+            device::DevicePage { session, connect_status: status }
         } else {
-            connect::ConnectPage { session }
+            connect::ConnectPage { session, status }
         }
     }
 }

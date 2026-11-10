@@ -4,10 +4,10 @@ use eg_transport::DeviceInfo;
 use tokio::sync::mpsc;
 
 #[component]
-pub fn ConnectPage(session: Signal<Option<Session>>) -> Element {
+pub fn ConnectPage(session: Signal<Option<Session>>, status: Signal<String>) -> Element {
     let mut session = session;
+    let mut status = status;
     let mut devices = use_signal(Vec::<DeviceInfo>::new);
-    let mut status = use_signal(String::new);
     let mut busy = use_signal(|| false);
     let mut scanning = use_signal(|| false);
 
@@ -40,7 +40,10 @@ pub fn ConnectPage(session: Signal<Option<Session>>) -> Element {
         let result = Session::connect(&dev).await;
         busy.set(false);
         match result {
-            Ok(s) => session.set(Some(s)),
+            Ok(s) => {
+                status.set(String::new());
+                session.set(Some(s));
+            }
             Err(e) => status.set(format!("Connection failed: {e}")),
         }
     };
