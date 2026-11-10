@@ -35,9 +35,10 @@ async fn off_ui_thread<T: Send + 'static>(work: impl Future<Output = Result<T>> 
     }
 }
 
-/// Lists devices exposing the shell service: already-connected ones first, then advertising ones.
-pub async fn scan() -> Result<Vec<DeviceInfo>> {
-    off_ui_thread(scan_devices()).await
+/// Sends devices exposing the shell service to `found` as they are discovered: already-connected
+/// ones first, then advertising ones. Returns when the scan ends.
+pub async fn scan(found: mpsc::UnboundedSender<DeviceInfo>) -> Result<()> {
+    off_ui_thread(scan_devices(found)).await
 }
 
 /// Bounds a setup step and logs it, so a hang shows up as an error naming the step.
@@ -46,12 +47,11 @@ async fn step<T>(what: &'static str, work: impl Future<Output = T>) -> Result<T>
     tokio::time::timeout(STEP_TIME, work).await.map_err(|_| Error::Timeout(what))
 }
 
-async fn scan_devices() -> Result<Vec<DeviceInfo>> {
+async fn scan_devices(found: mpsc::UnboundedSender<DeviceInfo>) -> Result<()> {
     let adapter = step("getting the Bluetooth adapter", Adapter::default()).await?.ok_or(Error::NoAdapter)?;
     step("waiting for Bluetooth to be on", adapter.wait_available()).await??;
 
     let mut seen = HashSet::new();
-    let mut found = Vec::new();
     // Windows matches connected devices against its cached service list, which may lack the
     // shell service, and ZMK does not advertise it. So ask each connected device directly
     // (uncached), as Web Bluetooth does.
@@ -67,7 +67,7 @@ async fn scan_devices() -> Result<Vec<DeviceInfo>> {
             Ok(Ok(true)) => {
                 log::info!("scan: {name} has the shell service");
                 seen.insert(device.id());
-                found.push(DeviceInfo { name, adapter: adapter.clone(), device });
+                let _ = found.send(DeviceInfo { name, adapter: adapter.clone(), device });
             }
             Ok(Ok(false)) => log::info!("scan: {name} has no shell service"),
             Ok(Err(e)) => log::info!("scan: {name}: {e}"),
@@ -89,9 +89,9 @@ async fn scan_devices() -> Result<Vec<DeviceInfo>> {
         }
         let name = device.name_async().await.unwrap_or_else(|_| "Unknown".into());
         log::info!("scan: found {name} {:?}, connected: {}", device.id(), device.is_connected().await);
-        found.push(DeviceInfo { name, adapter: adapter.clone(), device });
+        let _ = found.send(DeviceInfo { name, adapter: adapter.clone(), device });
     }
-    Ok(found)
+    Ok(())
 }
 
 /// Uncached GATT query. Uses `uuid_async` because bluer's `discover_services_with_uuid`

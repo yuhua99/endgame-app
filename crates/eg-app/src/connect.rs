@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 use eg_device::Session;
 use eg_transport::DeviceInfo;
+use tokio::sync::mpsc;
 
 #[component]
 pub fn ConnectPage(session: Signal<Option<Session>>) -> Element {
@@ -8,18 +9,29 @@ pub fn ConnectPage(session: Signal<Option<Session>>) -> Element {
     let mut devices = use_signal(Vec::<DeviceInfo>::new);
     let mut status = use_signal(String::new);
     let mut busy = use_signal(|| false);
+    let mut scanning = use_signal(|| false);
 
+    // Devices are listed as they are found, and can be connected to while the scan runs.
     let scan = move |_| async move {
-        busy.set(true);
-        status.set("Scanning…".into());
-        match eg_transport::scan().await {
-            Ok(found) => {
-                status.set(if found.is_empty() { "No trackball found.".into() } else { String::new() });
-                devices.set(found);
+        scanning.set(true);
+        status.set(String::new());
+        devices.write().clear();
+        let (tx, mut found) = mpsc::unbounded_channel();
+        let list = async move {
+            while let Some(device) = found.recv().await {
+                devices.write().push(device);
             }
-            Err(e) => status.set(format!("Scan failed: {e}")),
+        };
+        let (result, ()) = tokio::join!(eg_transport::scan(tx), list);
+        // A connection attempt started during the scan owns the status line.
+        if status.read().is_empty() {
+            match result {
+                Ok(()) if devices.read().is_empty() => status.set("No trackball found.".into()),
+                Ok(()) => {}
+                Err(e) => status.set(format!("Scan failed: {e}")),
+            }
         }
-        busy.set(false);
+        scanning.set(false);
     };
 
     let connect = move |dev: DeviceInfo| async move {
@@ -39,7 +51,7 @@ pub fn ConnectPage(session: Signal<Option<Session>>) -> Element {
             p { class: "hint",
                 "Pair the trackball with this computer over Bluetooth and make sure it is connected, then scan."
             }
-            button { disabled: busy(), onclick: scan, "Scan" }
+            button { disabled: busy() || scanning(), onclick: scan, "Scan" }
             ul { class: "devices",
                 for (i, dev) in devices.read().iter().cloned().enumerate() {
                     li { key: "{i}",
@@ -50,6 +62,8 @@ pub fn ConnectPage(session: Signal<Option<Session>>) -> Element {
             }
             if !status.read().is_empty() {
                 p { class: "status", "{status}" }
+            } else if scanning() {
+                p { class: "status", "Scanning…" }
             }
         }
     }

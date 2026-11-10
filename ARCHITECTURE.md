@@ -70,7 +70,7 @@ The only crate that touches the OS / hardware.
 ```rust
 pub struct Link { pub tx: mpsc::Sender<Vec<u8>>, pub rx: mpsc::UnboundedReceiver<Vec<u8>> } // rx ends = channel closed
 pub struct DeviceInfo { pub name: String, /* bluest adapter and device */ }
-pub async fn scan() -> Result<Vec<DeviceInfo>>;        // connected devices first, then advertising ones
+pub async fn scan(found: mpsc::UnboundedSender<DeviceInfo>) -> Result<()>; // sends devices as found: connected first, then advertising
 pub async fn open(dev: &DeviceInfo) -> Result<Connection>;
 impl Connection {
     pub async fn shell(&self) -> Result<Link>;          // subscribes before returning
