@@ -2,6 +2,7 @@
 //! No UI types here; the app calls these and renders the results.
 
 pub mod board;
+pub mod firmware;
 pub mod keymap;
 pub mod lighting;
 pub mod profiles;
