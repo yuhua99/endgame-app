@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{broadcast, mpsc, Mutex};
 
 use crate::framer::{strip_logs, Framer};
 use crate::{Error, Result};
@@ -10,10 +10,24 @@ use crate::{Error, Result};
 /// even if log output keeps arriving.
 const TIMEOUT: Duration = Duration::from_secs(10);
 
+/// Log lines a subscriber may fall behind by before it starts missing the oldest ones.
+const LOG_BACKLOG: usize = 256;
+
+/// One side of an `exec` exchange, as reported to `Shell::subscribe`.
+#[derive(Debug, Clone, PartialEq)]
+pub enum LogLine {
+    Sent(String),
+    /// The cleaned output; empty if the command printed nothing.
+    Received(String),
+    /// The error's message.
+    Failed(String),
+}
+
 /// Zephyr shell client. Clones share one session; commands run one at a time in call order.
 #[derive(Clone)]
 pub struct Shell {
     inner: Arc<Mutex<Inner>>,
+    log: broadcast::Sender<LogLine>,
 }
 
 impl Shell {
@@ -21,13 +35,31 @@ impl Shell {
     pub async fn open(tx: mpsc::Sender<Vec<u8>>, rx: mpsc::UnboundedReceiver<Vec<u8>>) -> Result<Shell> {
         let mut inner = Inner { tx, rx, framer: Framer::default(), sync_id: 0, in_sync: false };
         inner.exec("shell echo off").await?;
-        Ok(Shell { inner: Arc::new(Mutex::new(inner)) })
+        Ok(Shell { inner: Arc::new(Mutex::new(inner)), log: broadcast::channel(LOG_BACKLOG).0 })
     }
 
     /// Runs `cmd` and returns its output without prompt, ANSI codes, CRs, or firmware log lines.
     /// Fails with `Unsupported` if the firmware does not know the command.
     pub async fn exec(&self, cmd: &str) -> Result<String> {
+        let mut inner = self.inner.lock().await;
+        // Sending fails only when nobody subscribed.
+        let _ = self.log.send(LogLine::Sent(cmd.to_string()));
+        let result = inner.exec(cmd).await;
+        let _ = self.log.send(match &result {
+            Ok(out) => LogLine::Received(out.clone()),
+            Err(e) => LogLine::Failed(e.to_string()),
+        });
+        result
+    }
+
+    /// `exec` for background polling: not reported to subscribers.
+    pub async fn exec_bg(&self, cmd: &str) -> Result<String> {
         self.inner.lock().await.exec(cmd).await
+    }
+
+    /// Every `exec` from now on: the command when it is sent, then its output or failure.
+    pub fn subscribe(&self) -> broadcast::Receiver<LogLine> {
+        self.log.subscribe()
     }
 }
 
@@ -169,6 +201,21 @@ mod tests {
         let shell = Shell::open(tx, rx).await.unwrap();
         assert!(matches!(shell.exec("argb evt").await, Err(Error::Unsupported(c)) if c == "argb evt"));
         assert_eq!(shell.exec("board version").await.unwrap(), "Firmware: v1.6.2");
+    }
+
+    #[tokio::test]
+    async fn subscribers_see_exec_but_not_exec_bg() {
+        let (tx, rx) = device(endgame);
+        let shell = Shell::open(tx, rx).await.unwrap();
+        let mut log = shell.subscribe();
+        shell.exec_bg("board version").await.unwrap();
+        shell.exec("board version").await.unwrap();
+        assert!(shell.exec("argb evt").await.is_err());
+        assert_eq!(log.try_recv().unwrap(), LogLine::Sent("board version".into()));
+        assert_eq!(log.try_recv().unwrap(), LogLine::Received("Firmware: v1.6.2".into()));
+        assert_eq!(log.try_recv().unwrap(), LogLine::Sent("argb evt".into()));
+        assert_eq!(log.try_recv().unwrap(), LogLine::Failed("device does not support \"argb evt\"".into()));
+        assert!(log.try_recv().is_err());
     }
 
     #[tokio::test(start_paused = true)]

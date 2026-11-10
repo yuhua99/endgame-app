@@ -73,9 +73,9 @@ pub struct Surface {
 }
 
 /// Current surface quality of each sensor. Firmware without the command fails with
-/// `Unsupported` (see `Error::is_unsupported`).
+/// `Unsupported` (see `Error::is_unsupported`). Meant for polling, so it stays out of the shell log.
 pub async fn surface(shell: &Shell) -> Result<Vec<Surface>> {
-    parse_surface(&shell.exec("sensor surface").await?)
+    parse_surface(&shell.exec_bg("sensor surface").await?)
 }
 
 /// One "Sensor #1: surface quality = 412/728" line per sensor, in any letter case.

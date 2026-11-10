@@ -5,7 +5,7 @@
 mod client;
 mod framer;
 
-pub use client::Shell;
+pub use client::{LogLine, Shell};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

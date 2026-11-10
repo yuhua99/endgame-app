@@ -8,6 +8,7 @@ pub mod rtcfg;
 pub mod sensor;
 mod session;
 
+pub use eg_shell::LogLine;
 pub use session::Session;
 
 #[derive(Debug, thiserror::Error)]

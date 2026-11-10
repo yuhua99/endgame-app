@@ -29,9 +29,10 @@ pub struct Status {
     pub output: Option<Output>,
 }
 
+/// Meant for polling, so it stays out of the shell log.
 pub async fn status(shell: &Shell) -> Result<Status> {
-    let status = shell.exec("board status").await?;
-    let output = shell.exec("board output").await?;
+    let status = shell.exec_bg("board status").await?;
+    let output = shell.exec_bg("board output").await?;
     Ok(Status { battery: parse_battery(&status), output: parse_output(&output) })
 }
 
