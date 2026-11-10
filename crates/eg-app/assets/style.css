@@ -42,7 +42,7 @@ button.ghost { background: transparent; color: var(--text); border: 1px solid va
 }
 .tab.active { color: var(--text); border-bottom-color: var(--accent); }
 
-.content { padding: 20px; padding-bottom: 80px; }
+.content { padding: 20px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
 .row { display: grid; grid-template-columns: 180px 1fr 90px; align-items: center; gap: 12px; padding: 6px 0; }
 .row input[type=number] {
@@ -89,6 +89,8 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .mods { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 12px; }
 .mods label { display: flex; align-items: center; gap: 4px; }
 
+/* Keeps the last content clear of the fixed action bar. */
+.actions-space { height: 60px; }
 .actions {
   position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: flex-end; align-items: center;
   gap: 8px; padding: 12px 20px; background: var(--bg); border-top: 1px solid var(--line);
