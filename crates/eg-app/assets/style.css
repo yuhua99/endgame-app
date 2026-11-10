@@ -34,6 +34,9 @@ button.ghost { background: transparent; color: var(--text); border: 1px solid va
 .topbar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
 .topbar .device { font-weight: 600; }
 .topbar .firmware { color: var(--muted); flex: 1; }
+.topbar .output, .battery { color: var(--muted); }
+.battery { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.battery .meter { width: 36px; }
 
 .tabs { display: flex; gap: 4px; padding: 0 20px; border-bottom: 1px solid var(--line); }
 .tab {

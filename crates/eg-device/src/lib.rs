@@ -1,6 +1,7 @@
 //! Endgame device domain: session setup and feature APIs over the shell.
 //! No UI types here; the app calls these and renders the results.
 
+pub mod board;
 pub mod keymap;
 pub mod rtcfg;
 pub mod sensor;

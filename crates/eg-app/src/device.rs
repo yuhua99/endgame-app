@@ -1,9 +1,15 @@
+use std::time::Duration;
+
 use dioxus::prelude::*;
+use eg_device::board::{self, Battery, Output};
 use eg_device::Session;
 
 use crate::advanced::AdvancedTab;
 use crate::keymap::KeymapTab;
 use crate::sensor::SensorTab;
+
+/// Pause between readings of the battery level and active output.
+const STATUS_POLL: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
@@ -33,6 +39,21 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
     // A tab is mounted on first visit and then only hidden, so switching never cancels
     // a running operation and each tab loads its data once.
     let mut opened = use_signal(|| vec![Tab::Sensor]);
+    let mut status = use_signal(board::Status::default);
+    use_hook(move || {
+        spawn(async move {
+            loop {
+                let Some(shell) = session.peek().as_ref().map(|s| s.shell().clone()) else {
+                    break;
+                };
+                let new = board::status(&shell).await.unwrap_or_default();
+                if *status.peek() != new {
+                    status.set(new);
+                }
+                tokio::time::sleep(STATUS_POLL).await;
+            }
+        });
+    });
     let Some(s) = session() else {
         return rsx! {};
     };
@@ -42,6 +63,12 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
             header { class: "topbar",
                 span { class: "device", "{s.name}" }
                 span { class: "firmware", "Firmware {s.firmware}" }
+                if let Some(output) = status().output {
+                    span { class: "output", title: "Where the trackball sends its input", "Output: {output_label(output)}" }
+                }
+                if let Some(battery) = status().battery {
+                    BatteryLevel { battery }
+                }
                 button { class: "ghost", onclick: move |_| session.set(None), "Disconnect" }
             }
             nav { class: "tabs",
@@ -73,6 +100,33 @@ pub fn DevicePage(session: Signal<Option<Session>>) -> Element {
                     }
                 }
             }
+        }
+    }
+}
+
+fn output_label(output: Output) -> &'static str {
+    match output {
+        Output::Usb => "USB",
+        Output::Ble => "Bluetooth",
+        Output::Dongle => "Dongle",
+    }
+}
+
+#[component]
+fn BatteryLevel(battery: Battery) -> Element {
+    // Marshmellow UI's colour thresholds.
+    let level = match battery.percent {
+        0..=15 => "low",
+        16..=30 => "mid",
+        _ => "high",
+    };
+    let title = if battery.usb_powered { "Battery (not accurate while USB power is present)" } else { "Battery" };
+    rsx! {
+        span { class: "battery", title,
+            div { class: "meter",
+                div { class: level, width: "{battery.percent.min(100)}%" }
+            }
+            "{battery.percent}%"
         }
     }
 }
