@@ -72,6 +72,13 @@ button.small { padding: 4px 10px; font-weight: 500; font-size: 12px; }
 .key.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .key .hdr { font-size: 9px; color: var(--muted); white-space: nowrap; }
 .key .lbl { font-size: 12px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 100%; }
+.endgame { display: block; width: 100%; max-width: 440px; margin: 0 auto; }
+.endgame .ekey { fill: #343841; stroke: #4f5662; stroke-width: 2; cursor: pointer; }
+.endgame .ekey:hover { fill: #3d424c; }
+.endgame .ekey.selected { fill: #2c3656; stroke: var(--accent); stroke-width: 5; }
+.endgame text { font-family: inherit; text-anchor: middle; fill: var(--text); pointer-events: none; }
+.endgame .hdr, .endgame .caption { font-size: 15px; fill: var(--muted); }
+.endgame .lbl { font-size: 22px; font-weight: 600; }
 .editor select, .editor input[type=search] {
   background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font: inherit;
 }

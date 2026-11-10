@@ -6,3 +6,6 @@ ZMK Studio
 Copyright 2024 The ZMK Contributors
 Licensed under the Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0).
 The usage tables derive from the USB-IF HID Usage Tables 1.5.
+
+The Endgame trackball outline in src/endgame.rs is traced from the device render in
+efog.tech's Marshmellow UI (https://efog.tech/marshmellow-ui/), used with the author's permission.

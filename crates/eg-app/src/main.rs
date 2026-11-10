@@ -6,6 +6,7 @@ mod advanced;
 mod connect;
 mod device;
 mod editable;
+mod endgame;
 mod hid;
 mod keymap;
 mod sensor;

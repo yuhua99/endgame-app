@@ -4,6 +4,7 @@ use eg_device::keymap::{
 };
 use eg_device::Session;
 
+use crate::endgame::{self, EndgameLayout};
 use crate::hid;
 
 /// Pixels per key unit; layout values are in 1/100 key units.
@@ -158,6 +159,7 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
         return rsx! { p { class: "placeholder", "The keymap has no layers." } };
     };
     let caps = key_caps(&d.layout.keys, &layer, &d.behaviors, &layers);
+    let is_endgame = endgame::matches(&d.layout.keys);
     let (width, height) = layout_size(&d.layout.keys);
     let editing = selected().and_then(|pos| layer.bindings.get(pos).map(|b| (pos, *b)));
 
@@ -181,17 +183,23 @@ pub fn KeymapTab(session: Signal<Option<Session>>) -> Element {
             }
             button { disabled: busy_now || !unsaved(), onclick: move |_| change(ChangeOp::Save), "Save" }
         }
-        div { class: "layout-wrap",
-            div { class: "layout", style: "width: {width}px; height: {height}px;",
-                for cap in caps {
-                    button {
-                        key: "{cap.pos}",
-                        class: if selected() == Some(cap.pos) { "key selected" } else { "key" },
-                        style: "{cap.style}",
-                        title: "{cap.title}",
-                        onclick: move |_| selected.set(Some(cap.pos)),
-                        span { class: "hdr", "{cap.header}" }
-                        span { class: "lbl", "{cap.label}" }
+        if is_endgame {
+            div { class: "layout-wrap",
+                EndgameLayout { caps, selected: selected(), on_select: move |pos| selected.set(Some(pos)) }
+            }
+        } else {
+            div { class: "layout-wrap",
+                div { class: "layout", style: "width: {width}px; height: {height}px;",
+                    for cap in caps {
+                        button {
+                            key: "{cap.pos}",
+                            class: if selected() == Some(cap.pos) { "key selected" } else { "key" },
+                            style: "{cap.style}",
+                            title: "{cap.title}",
+                            onclick: move |_| selected.set(Some(cap.pos)),
+                            span { class: "hdr", "{cap.header}" }
+                            span { class: "lbl", "{cap.label}" }
+                        }
                     }
                 }
             }
@@ -227,11 +235,12 @@ enum ChangeOp {
     Discard,
 }
 
-struct Cap {
-    pos: usize,
+#[derive(Clone, PartialEq)]
+pub(crate) struct Cap {
+    pub pos: usize,
     style: String,
-    header: String,
-    label: String,
+    pub header: String,
+    pub label: String,
     title: String,
 }
 
