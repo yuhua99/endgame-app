@@ -193,29 +193,6 @@ One `thiserror` enum per crate. `eg-shell`: `Timeout(cmd)`, `Unsupported(cmd)`, 
 - No wrappers around Studio prost types.
 - No protocol strings in `eg-app`.
 
-## Status (2026-11-10)
-
-- Done: eg-transport (BLE shell + optional Studio characteristic), eg-shell (exec only), eg-studio (prost via protox build.rs, framing, RPC client with notifications), eg-device (`Session` with name + firmware + optional Studio; `sensor`, `rtcfg`, `keymap`, `profiles`, `board`), eg-app (connect page; top bar with battery and active output; tabs Sensor, Advanced (rtcfg), Keymap (Studio), Profiles; Lighting is a placeholder).
-- Keymap tab: layout render, layer tabs, binding editor (behavior + params: constants, range, HID usage with mods and device limits, layer), live changes, Save/Discard, lock banner driven by notifications. Labels/HID tables in eg-app/assets (from zmk-studio, see NOTICE).
-- Sensor tab: settings incl. frame sync, live surface quality (`sensor surface`, polled while the tab is visible).
-- Profiles tab: keymap slots (`keymap status/save/overwrite/activate/destroy/restore`), output assignments (`keymap assign`, `keymap/autoswitch`), OS mode (`bistable`, `bst/default`). Changes that store or replace the keymap are refused while Studio has unsaved edits.
-- Polling lives in eg-app (surface quality, `board status` / `board output` every 5 s); settings tabs read again when reopened without edits.
-- Not yet: `Capabilities`, `exec_bg` / `stream`, `closed()`, serial/dongle, layer add/remove/rename, firmware update.
-- Unverified on hardware: `rrl get` / `plane get pointer` formats; `board status` / `board output` and `keymap` formats (taken from the firmware sources); `bistable slot` (taken from Marshmellow's parser).
-- Known firmware issue (v1.6.2): after `keymap save/overwrite/activate/destroy/restore/assign` the trackball hangs at the next BLE connection event (for example when the app disconnects) until it is power-cycled. The cause is the runtime `settings_commit()` calls in zmk-keymap-shell; the Profiles tab is left as is until a firmware release fixes it.
-- Linux build of eg-app needs webkit2gtk-4.1 / gtk3 dev packages.
-- Fixtures: `crates/eg-device/tests/fixtures/v1.6.2/` (recorded over BLE, cleaned like `Framer`).
-
-## Roadmap
-
-```
-v1  eg-transport(ble) │ eg-shell │ eg-device(sensor) │ eg-app(connect, sensor)
-v2  + rtcfg, keymap_slots, output
-v3  + serial, dongle, backup, eg-firmware
-v4  + eg-studio, keymap editor (port zmk-studio widgets)
-v5  + monitor (stream), lighting, curves, encoder, bistable
-```
-
 ## Open questions
 
 1. USB: are shell and Studio on separate CDC ports, and how to tell them apart (interface number / description)?
