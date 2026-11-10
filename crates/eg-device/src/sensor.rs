@@ -1,5 +1,6 @@
 //! Sensor settings: pointer and twist-scroll sensitivity, twist scroll, SMA smoothing,
-//! report sync window, and pointer plane rotation. Also the live surface quality readout.
+//! report sync window, frame sync, and pointer plane rotation. Also the live surface
+//! quality readout.
 //!
 //! Commands and value formats follow Marshmellow UI. `p2sm status` and
 //! `p2sm sens pointer get` outputs are recorded from firmware v1.6.2 (tests/fixtures);
@@ -10,7 +11,7 @@ use std::ops::RangeInclusive;
 
 use eg_shell::Shell;
 
-use crate::{Error, Result};
+use crate::{exec_checked, exec_optional, rtcfg, Error, Result};
 
 /// Ranges used by Marshmellow UI's controls, in the units of the fields below.
 pub const POINTER_RANGE: RangeInclusive<u32> = 10..=1000;
@@ -19,6 +20,7 @@ pub const SMA_WINDOW_RANGE: RangeInclusive<u32> = 2..=12;
 pub const SYNC_MS_RANGE: RangeInclusive<u32> = 0..=10;
 /// Not taken from Marshmellow (it uses a free text field).
 pub const PLANE_DEG_RANGE: RangeInclusive<i32> = -180..=180;
+const FRAME_SYNC: &str = "p2sm/frame_sync";
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SensorSettings {
@@ -35,25 +37,24 @@ pub struct SensorSettings {
     pub sync_ms: u32,
     /// Pointer plane rotation in degrees; `None` if the firmware reports no angle.
     pub plane_deg: Option<i32>,
+    /// Frame sync of the two sensors (an `rtcfg` parameter); `None` if the firmware lacks it.
+    pub frame_sync: Option<bool>,
 }
 
 pub async fn read(shell: &Shell) -> Result<SensorSettings> {
     let status = shell.exec("p2sm status").await?;
     let pointer = shell.exec("p2sm sens pointer get").await?;
     let rrl = shell.exec("rrl get").await?;
-    let plane = match shell.exec("plane get pointer").await {
-        Ok(out) => Some(out),
-        Err(eg_shell::Error::Unsupported(_)) => None,
-        Err(e) => return Err(e.into()),
-    };
-    parse(&status, &pointer, &rrl, plane.as_deref())
+    let plane = exec_optional(shell, "plane get pointer").await?;
+    let frame_sync = rtcfg::get(shell, FRAME_SYNC).await?.map(|v| v != 0);
+    Ok(SensorSettings { frame_sync, ..parse(&status, &pointer, &rrl, plane.as_deref())? })
 }
 
 /// Sends only the changed settings, then reads back what the device actually has.
 pub async fn apply(shell: &Shell, new: &SensorSettings) -> Result<SensorSettings> {
     let current = read(shell).await?;
     for cmd in diff(&current, new) {
-        shell.exec(&cmd).await?;
+        exec_checked(shell, &cmd).await?;
     }
     read(shell).await
 }
@@ -91,6 +92,7 @@ pub fn parse_surface(out: &str) -> Result<Vec<Surface>> {
     Ok(readings)
 }
 
+/// Everything but `frame_sync`, which `read` gets from `rtcfg`.
 pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Result<SensorSettings> {
     let bad = |cmd: &str, output: &str| Error::Parse { cmd: cmd.into(), output: output.into() };
     let flag = |key: &str, on: &str, off: &str| {
@@ -120,6 +122,7 @@ pub fn parse(status: &str, pointer: &str, rrl: &str, plane: Option<&str>) -> Res
             .find_map(|v| v.split_whitespace().next()?.parse().ok())
             .ok_or_else(|| bad("rrl get", rrl))?,
         plane_deg: plane.and_then(parse_angle),
+        frame_sync: None,
     })
 }
 
@@ -151,6 +154,9 @@ pub fn diff(old: &SensorSettings, new: &SensorSettings) -> Vec<String> {
     }
     if let Some(deg) = new.plane_deg.filter(|_| new.plane_deg != old.plane_deg) {
         cmds.push(format!("plane set pointer {deg}"));
+    }
+    if let Some(on) = new.frame_sync.filter(|_| new.frame_sync != old.frame_sync) {
+        cmds.push(format!("rtcfg set {FRAME_SYNC} {}", on as u8));
     }
     cmds
 }
@@ -200,6 +206,7 @@ mod tests {
                 sma_window: 3,
                 sync_ms: 4,
                 plane_deg: Some(-15),
+                frame_sync: None,
             }
         );
     }
@@ -248,6 +255,14 @@ mod tests {
             diff(&old, &new),
             ["p2sm sens pointer set 300", "p2sm twist reverse", "p2sm sma on", "plane set pointer 0"]
         );
+    }
+
+    #[test]
+    fn diff_sets_frame_sync() {
+        let old = SensorSettings { frame_sync: Some(true), ..sample() };
+        let new = SensorSettings { frame_sync: Some(false), ..old.clone() };
+        assert_eq!(diff(&old, &new), ["rtcfg set p2sm/frame_sync 0"]);
+        assert!(diff(&old, &SensorSettings { frame_sync: None, ..old.clone() }).is_empty());
     }
 
     #[test]

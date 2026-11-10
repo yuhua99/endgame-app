@@ -3,7 +3,7 @@
 
 use eg_shell::Shell;
 
-use crate::{Error, Result};
+use crate::{exec_checked, exec_optional, Error, Result};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Param {
@@ -25,28 +25,24 @@ pub async fn list(shell: &Shell) -> Result<Vec<Param>> {
     parse(&shell.exec("rtcfg list").await?)
 }
 
+/// Current value of one parameter; `None` if the firmware does not have it.
+pub async fn get(shell: &Shell, key: &str) -> Result<Option<i32>> {
+    Ok(exec_optional(shell, &format!("rtcfg get {key}")).await?.and_then(|out| parse_value(&out)))
+}
+
 /// Sets only the changed values, then reads back the device's list.
 pub async fn apply(shell: &Shell, new: &[Param]) -> Result<Vec<Param>> {
     let current = list(shell).await?;
     for cmd in diff(&current, new) {
-        run(shell, &cmd).await?;
+        exec_checked(shell, &cmd).await?;
     }
     list(shell).await
 }
 
 /// Restores the compiled default (the firmware also drops the stored value).
 pub async fn reset(shell: &Shell, key: &str) -> Result<Vec<Param>> {
-    run(shell, &format!("rtcfg reset {key}")).await?;
+    exec_checked(shell, &format!("rtcfg reset {key}")).await?;
     list(shell).await
-}
-
-/// `set`/`reset` report failures (unknown key, out of range, storage error) as "Error: ...".
-async fn run(shell: &Shell, cmd: &str) -> Result<()> {
-    let out = shell.exec(cmd).await?;
-    match out.lines().find(|l| l.trim_start().starts_with("Error")) {
-        Some(line) => Err(Error::Rejected(format!("{cmd}: {}", line.trim()))),
-        None => Ok(()),
-    }
 }
 
 /// Lines like `  p2sm/ema_alpha   15  (default: 15, range: [1, 50])`.
@@ -55,6 +51,11 @@ pub fn parse(out: &str) -> Result<Vec<Param>> {
         .filter(|l| !l.trim().is_empty())
         .map(|line| parse_line(line).ok_or_else(|| Error::Parse { cmd: "rtcfg list".into(), output: line.into() }))
         .collect()
+}
+
+/// "p2sm/frame_sync = 1" -> 1; "Error: key does not exist" -> None.
+fn parse_value(out: &str) -> Option<i32> {
+    out.lines().find_map(|line| line.rsplit_once(" = ")?.1.trim().parse().ok())
 }
 
 pub fn diff(old: &[Param], new: &[Param]) -> Vec<String> {
@@ -94,6 +95,12 @@ mod tests {
         let big = params.iter().find(|p| p.key == "accel/monitor_auto_off_ms").unwrap();
         assert_eq!(big.max, 3_600_000);
         assert!(params.iter().find(|p| p.key == "p2sm/frame_sync").unwrap().is_bool());
+    }
+
+    #[test]
+    fn parses_single_value() {
+        assert_eq!(parse_value("p2sm/frame_sync = 1\n"), Some(1));
+        assert_eq!(parse_value("Error: key does not exist"), None);
     }
 
     #[test]

@@ -36,3 +36,22 @@ impl Error {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+/// Runs a command that reports a failure as an "Error..." line, as `rtcfg` does for an
+/// unknown key, a value out of range, or a storage error.
+pub(crate) async fn exec_checked(shell: &eg_shell::Shell, cmd: &str) -> Result<()> {
+    let out = shell.exec(cmd).await?;
+    match out.lines().find(|l| l.trim_start().starts_with("Error")) {
+        Some(line) => Err(Error::Rejected(format!("{cmd}: {}", line.trim()))),
+        None => Ok(()),
+    }
+}
+
+/// Output of a command that some firmware versions lack.
+pub(crate) async fn exec_optional(shell: &eg_shell::Shell, cmd: &str) -> Result<Option<String>> {
+    match shell.exec(cmd).await {
+        Ok(out) => Ok(Some(out)),
+        Err(eg_shell::Error::Unsupported(_)) => Ok(None),
+        Err(e) => Err(e.into()),
+    }
+}

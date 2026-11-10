@@ -148,6 +148,14 @@ pub fn SensorTab(session: Signal<Option<Session>>, visible: ReadSignal<bool>) ->
                 unit: " ms",
                 on_change: move |v: f64| ed.edit(|s| s.sync_ms = v.round() as u32),
             }
+            if let Some(on) = f.frame_sync {
+                Toggle {
+                    label: "Frame sync",
+                    disabled: busy,
+                    checked: on,
+                    on_change: move |v: bool| ed.edit(|s| s.frame_sync = Some(v)),
+                }
+            }
         }
         Actions {
             error: ed.error.cloned(),
