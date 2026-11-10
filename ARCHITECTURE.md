@@ -91,7 +91,8 @@ impl Connection {
 impl Shell {                                                   // Clone (Arc inside)
     pub async fn open(tx: Sender<Vec<u8>>, rx: UnboundedReceiver<Vec<u8>>) -> Result<Shell>; // syncs, sends `shell echo off`
     pub async fn exec(&self, cmd: &str) -> Result<String>;
-    pub async fn exec_bg(&self, cmd: &str) -> Result<String>;  // background polling, yields to exec
+    pub async fn exec_bg(&self, cmd: &str) -> Result<String>;  // background polling: not logged, yields to exec
+    pub fn subscribe(&self) -> broadcast::Receiver<LogLine>;   // Sent / Received / Failed of every exec
     pub async fn stream(&self, start: &str, stop: &str) -> Result<ShellStream>; // drop sends stop
 }
 ```
