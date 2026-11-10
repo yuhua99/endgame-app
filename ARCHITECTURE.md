@@ -38,14 +38,14 @@ The device exposes up to three channels; which ones are available depends on how
 ```
           eg-app (bin, Dioxus desktop)
           /         \
-     eg-device      dioxus
+     eg-device      dioxus, ureq
     /    |     \
 eg-shell eg-studio eg-transport
     \      |      /
   tokio::mpsc (Link = a pair of channels)
 ```
 
-Only `eg-app` depends on Dioxus. `eg-shell` / `eg-studio` do not depend on `eg-transport`; they take a `Link`'s channels, so tests feed them plain channels. `eg-app` also uses `eg-transport` directly, to scan for devices.
+Only `eg-app` depends on Dioxus and on `ureq` (HTTPS through native-tls, which dioxus-desktop already builds; schannel on Windows). `eg-shell` / `eg-studio` do not depend on `eg-transport`; they take a `Link`'s channels, so tests feed them plain channels. `eg-app` also uses `eg-transport` directly, to scan for devices.
 
 ```
 endgame-app/
@@ -55,11 +55,12 @@ endgame-app/
     eg-shell/      src/{lib, framer, client}.rs
     eg-studio/     src/{lib, framing, client}.rs, build.rs (prost), proto/ (zmk-studio-messages)
     eg-device/     src/{lib, session}.rs
-                   src/{sensor, rtcfg, profiles, lighting, board, keymap}.rs   features
+                   src/{sensor, rtcfg, profiles, lighting, board, keymap, firmware}.rs   features
                    tests/fixtures/v1.6.2/*.txt                       recorded device output
     eg-app/        src/{main, connect, device}.rs                    app, connect page, device page
                    src/{sensor, advanced, keymap, profiles, lighting, logs}.rs   tabs
                    src/{editable, widgets, endgame, hid}.rs          form state, form rows, trackball drawing, HID usages
+                   src/update.rs                                     latest firmware release on GitHub
                    assets/{style.css, hid_usages.tsv, behavior_short_names.tsv}   tables from zmk-studio, keep NOTICE
 ```
 
@@ -131,6 +132,7 @@ The connection closes when the last clone drops.
 | `lighting` | light and vibration per event, light switch, brightness, RGB support and override | shell: `argb`, `board rgb`, `board layers`, `rtcfg` |
 | `board` | battery, active output | shell: `board status`, `board output` |
 | `keymap` | layout, layers, behaviors, bindings, save/discard, lock and unsaved-changes events | Studio |
+| `firmware` | whether a release tag is newer than the installed version | pure |
 
 Settings modules have the same shape:
 
@@ -153,6 +155,7 @@ pub async fn apply(shell: &Shell, saved: &SensorSettings, new: &SensorSettings) 
 - Sensor, Advanced, and Lighting keep an `Editable<T>`: `saved` mirrors the device, `form` holds the edits, Apply sends the difference. They read the device again when reopened without edits.
 - Polling lives here: surface quality every 100 ms while the Sensor tab is visible, battery and active output every 5 s. Both use `exec_bg`.
 - The 5 s poll is also the heartbeat: when it fails (link closed, or no answer within the shell timeout), the app drops the session and shows the connect page with the reason.
+- When the device page mounts it asks GitHub once for the latest release of `efogtech/endgame-trackball-config` (the repo Marshmellow checks; tags look like `endgame-1.6.2`). If it is newer than the device's firmware, the top bar links to the releases page. A failed request shows nothing.
 - The device page subscribes to the shell log when it mounts; the Logs tab shows it and sends typed commands.
 
 ### Data flow (Apply)
